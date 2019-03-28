@@ -10,16 +10,50 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:vscodelinkerd.install"
+		"onCommand:vslinkerd.install",
+		"onCommand:vslinkerd.check"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [
 			{
-				"command": "vscodelinkerd.install",
+				"command": "vslinkerd.install",
 				"title": "Install Linkerd"
+			},
+			{
+				"command": "vslinkerd.check",
+				"title": "Check Linkerd"
 			}
-		]
+		],
+        "menus": {
+            "view/item/context": [
+                {
+                    "command": "vslinkerd.install",
+                    "when": "view == extension.vsKubernetesExplorer && viewItem =~ /^vsKubernetes\\.\\w*cluster$/i",
+                    "group": "8"
+				},
+				{
+                    "command": "vslinkerd.check",
+                    "when": "view == extension.vsKubernetesExplorer && viewItem =~ /^vsKubernetes\\.\\w*cluster$/i",
+                    "group": "8"
+				}
+			]
+		},
+		"configuration": {
+            "title": "VSCode Linkerd",
+            "properties": {
+                "vscode-linkerd": {
+                    "type": "object",
+                    "description": "VSCode Linkerd Configuration",
+                    "properties": {
+                        "rakkess-path": {
+                            "type": "string",
+                            "description": "File path to a Linkerd binary"
+                        }
+                    }
+                }
+            }
+        }
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
@@ -29,13 +63,15 @@
 		"test": "npm run compile && node ./node_modules/vscode/bin/test"
 	},
 	"devDependencies": {
-		"typescript": "^3.3.1",
-		"vscode": "^1.1.28",
-		"tslint": "^5.12.1",
+		"@types/mocha": "^2.2.42",
 		"@types/node": "^10.12.21",
-		"@types/mocha": "^2.2.42"
+		"@types/shelljs": "^0.8.3",
+		"tslint": "^5.12.1",
+		"typescript": "^3.3.1",
+		"vscode": "^1.1.28"
 	},
 	"dependencies": {
+		"shelljs": "^0.8.3",
 		"vscode-kubernetes-tools-api": "0.0.2"
 	}
 }
