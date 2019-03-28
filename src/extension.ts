@@ -2,6 +2,7 @@
 
 import * as vscode from 'vscode';
 import * as k8s from 'vscode-kubernetes-tools-api';
+import * as linkerd from './linkerd/linkerd';
 
 let clusterExplorer: k8s.ClusterExplorerV1 | undefined = undefined;
 let kubectl: k8s.KubectlV1 | undefined = undefined;
@@ -19,7 +20,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
     const subscriptions = [
 		vscode.commands.registerCommand('vslinkerd.install', installLinkerd),
-		vscode.commands.registerCommand('vslinkerd.check', checkLinkerd)
+        vscode.commands.registerCommand('vslinkerd.check', checkLinkerd)
     ];
 
     context.subscriptions.push(...subscriptions);
@@ -37,18 +38,18 @@ function installLinkerd (commandTarget: any) {
 	const clusterName = clusterNode(commandTarget);
 	if (!clusterName) {
 		return undefined;
-	}
+    }
 
-    console.log("Installing linkerd");
+    linkerd.install(kubectl);
 }
 
 function checkLinkerd (commandTarget: any) {
 	const clusterName = clusterNode(commandTarget);
 	if (!clusterName) {
 		return undefined;
-	}
+    }
 
-	console.log("Checking linkerd");
+    linkerd.check();
 }
 
 function clusterNode(commandTarget: any): string | undefined {
