@@ -46,7 +46,7 @@
                     "type": "object",
                     "description": "VSCode Linkerd Configuration",
                     "properties": {
-                        "rakkess-path": {
+                        "linkerd-path": {
                             "type": "string",
                             "description": "File path to a Linkerd binary"
                         }
