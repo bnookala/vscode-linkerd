@@ -3,11 +3,12 @@
 import * as vscode from 'vscode';
 import * as k8s from 'vscode-kubernetes-tools-api';
 import * as linkerd from './linkerd/linkerd';
+import { linkerdUri, LinkerdCheckProvider } from './linkerd/linkerd-provider';
 
 let clusterExplorer: k8s.ClusterExplorerV1 | undefined = undefined;
 let kubectl: k8s.KubectlV1 | undefined = undefined;
 
-export async function activate(context: vscode.ExtensionContext) {
+export async function activate (context: vscode.ExtensionContext) {
 	const clusterExplorerAPI = await k8s.extension.clusterExplorer.v1;
 	const kubectlAPI = await k8s.extension.kubectl.v1;
 
@@ -20,7 +21,8 @@ export async function activate(context: vscode.ExtensionContext) {
 
     const subscriptions = [
 		vscode.commands.registerCommand('vslinkerd.install', installLinkerd),
-        vscode.commands.registerCommand('vslinkerd.check', checkLinkerd)
+        vscode.commands.registerCommand('vslinkerd.check', checkLinkerd),
+        vscode.workspace.registerTextDocumentContentProvider('linkerd', new LinkerdCheckProvider())
     ];
 
     context.subscriptions.push(...subscriptions);
@@ -43,16 +45,16 @@ function installLinkerd (commandTarget: any) {
     linkerd.install(kubectl);
 }
 
-function checkLinkerd (commandTarget: any) {
+async function checkLinkerd (commandTarget: any) {
 	const clusterName = clusterNode(commandTarget);
 	if (!clusterName) {
 		return undefined;
     }
 
-    linkerd.check();
+    await vscode.commands.executeCommand("markdown.showPreview", linkerdUri());
 }
 
-function clusterNode(commandTarget: any): string | undefined {
+function clusterNode (commandTarget: any): string | undefined {
     if (!commandTarget) {
         return undefined;
 	}

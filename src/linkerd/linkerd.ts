@@ -2,13 +2,13 @@ import * as vscode from 'vscode';
 import * as shelljs from 'shelljs';
 import * as k8s from 'vscode-kubernetes-tools-api';
 import * as config from './config';
-
-const outputChannel = vscode.window.createOutputChannel("Linkerd");
+import * as provider from './linkerd-provider';
 
 const exec = (args: string): shelljs.ExecOutputReturnValue | undefined => {
     const binaryPath = config.linkerdPath();
 
     if (!binaryPath) {
+        // TODO: can we programatically open workspace settings?
         vscode.window.showErrorMessage("Linkerd binary not found on file system. Please set in workspace settings.");
         return undefined;
     }
@@ -16,19 +16,14 @@ const exec = (args: string): shelljs.ExecOutputReturnValue | undefined => {
     return shelljs.exec(`${binaryPath} ${args}`);
 };
 
-export function check () {
-    outputChannel.clear();
+export function check (): shelljs.ExecOutputReturnValue | undefined {
     const out = exec('check --pre');
 
     if (!out) {
         return;
     }
 
-    const checkOutput = out.stdout.toString();
-    outputChannel.append(checkOutput);
-    outputChannel.show();
-
-    return out.code;
+    return out;
 }
 
 export function install (kubectl: k8s.KubectlV1 | undefined) {
@@ -36,9 +31,9 @@ export function install (kubectl: k8s.KubectlV1 | undefined) {
         return;
     }
 
-    const outCode = check();
+    const checkOutput = check();
 
-    if (outCode !== 0) {
+    if (!checkOutput || checkOutput.code !== 0) {
         vscode.window.showErrorMessage("Could not install linkerd - linkerd checks failed.");
         return;
     }
