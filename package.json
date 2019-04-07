@@ -25,35 +25,35 @@
 				"title": "Check Linkerd"
 			}
 		],
-        "menus": {
-            "view/item/context": [
-                {
-                    "command": "vslinkerd.install",
-                    "when": "view == extension.vsKubernetesExplorer && viewItem =~ /^vsKubernetes\\.\\w*cluster$/i",
-                    "group": "8"
+		"menus": {
+			"view/item/context": [
+				{
+					"command": "vslinkerd.install",
+					"when": "view == extension.vsKubernetesExplorer && viewItem =~ /^vsKubernetes\\.\\w*cluster$/i",
+					"group": "8"
 				},
 				{
-                    "command": "vslinkerd.check",
-                    "when": "view == extension.vsKubernetesExplorer && viewItem =~ /^vsKubernetes\\.\\w*cluster$/i",
-                    "group": "8"
+					"command": "vslinkerd.check",
+					"when": "view == extension.vsKubernetesExplorer && viewItem =~ /^vsKubernetes\\.\\w*cluster$/i",
+					"group": "8"
 				}
 			]
 		},
 		"configuration": {
-            "title": "VSCode Linkerd",
-            "properties": {
-                "vscode-linkerd": {
-                    "type": "object",
-                    "description": "VSCode Linkerd Configuration",
-                    "properties": {
-                        "linkerd-path": {
-                            "type": "string",
-                            "description": "File path to a Linkerd binary"
-                        }
-                    }
-                }
-            }
-        }
+			"title": "VSCode Linkerd",
+			"properties": {
+				"vscode-linkerd": {
+					"type": "object",
+					"description": "VSCode Linkerd Configuration",
+					"properties": {
+						"linkerd-path": {
+							"type": "string",
+							"description": "File path to a Linkerd binary"
+						}
+					}
+				}
+			}
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
@@ -71,6 +71,8 @@
 		"vscode": "^1.1.28"
 	},
 	"dependencies": {
+		"@types/json2md": "^1.5.0",
+		"json2md": "^1.6.3",
 		"shelljs": "^0.8.3",
 		"vscode-kubernetes-tools-api": "0.0.2"
 	}
