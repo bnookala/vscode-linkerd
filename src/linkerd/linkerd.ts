@@ -2,8 +2,6 @@ import * as vscode from 'vscode';
 import * as shelljs from 'shelljs';
 import * as k8s from 'vscode-kubernetes-tools-api';
 import * as config from './config';
-import * as provider from './linkerd-provider';
-import { type } from 'os';
 
 const SUCCESS_SYMBOL = "√";
 const FAIL_SYMBOL = "×";
@@ -24,7 +22,7 @@ export interface LinkerdCondition {
     hint?: string;
 }
 
-export type LinkerdCheckOutput = shelljs.ExecOutputReturnValue | undefined;
+export type LinkerdCheckCLIOutput = shelljs.ExecOutputReturnValue | undefined;
 
 const exec = (args: string): shelljs.ExecOutputReturnValue | undefined => {
     const binaryPath = config.linkerdPath();
@@ -38,7 +36,7 @@ const exec = (args: string): shelljs.ExecOutputReturnValue | undefined => {
     return shelljs.exec(`${binaryPath} ${args}`);
 };
 
-export function check (): LinkerdCheckOutput {
+export function check (): LinkerdCheckCLIOutput {
     const out = exec('check --pre');
 
     if (!out) {
@@ -71,7 +69,41 @@ export function install (kubectl: k8s.KubectlV1 | undefined) {
     vscode.window.showInformationMessage("Linkerd checks passed. Continuing to install.");
 }
 
-export function structuredCheckOutput (stdout: string): LinkerdCheck {
+/**
+ * Hello, dear reader
+ * This isn't the best work, but it _does_ work… at least until the Linkerd CLI tool is updated and
+ * breaks this. Until the CLI tool has the ability to output in a parseable format, this function
+ * takes the output of `linkerd check` and outputs a structured object that can be used in this
+ * extension. I apologize for any agony I may have caused.
+ *
+ * We make the assumption that the output is structured similar to this:
+ *
+ * ```
+ * kubernetes-api
+ * --------------
+ * √ can initialize the client
+ * √ can query the Kubernetes API
+ *
+ * kubernetes-version
+ * ------------------
+ * × is running the minimum Kubernetes API version
+ *    Kubernetes is on version [1.9.11], but version [1.10.0] or more recent is required
+ *    see https://linkerd.io/checks/#k8s-version for hints
+ *
+ * ...
+ * ...
+ *
+ * Status check results are ×
+ * ```
+ *
+ * Inline comments describe how this "parser" reads this input.
+ *
+ * @param checkOutput a LinkerdCHeckCLIOutput object captured from running the `check` command above.
+ * @returns a LinkerdCheck object
+ */
+export function structuredCheckOutput (checkOutput: LinkerdCheckCLIOutput): LinkerdCheck {
+    const stdout = checkOutput!.stdout;
+
     const statusMessagePrefix = "Status check results are";
     const sections = [
         "kubernetes-api",
