@@ -9,18 +9,37 @@ const FailedCheckHintPrefix = "    "; // Yeah… I know :c - will move this to r
 
 export interface LinkerdCheck {
     sections: LinkerdCheckSections;
-    status: LinkerdCondition;
+    status: LinkerdCheckCondition;
+    includedSections: Array<string>;
 }
 
 export interface LinkerdCheckSections {
-    [key: string]: Array<LinkerdCondition>;
+    [key: string]: Array<LinkerdCheckCondition>;
 }
 
-export interface LinkerdCondition {
+export interface LinkerdCheckCondition {
     succeeded: boolean;
     message: string;
     hint?: string;
 }
+
+export enum LinkerdCheckType {
+    KubernetesApi = "kubernetes-api",
+    KubernetesVersion = "kubernetes-version",
+    PreKubernetesClusterSetup = "pre-kubernetes-cluster-setup",
+    PreKubernetesSetup = "pre-kubernetes-setup",
+    LinkerdVersion = "linkerd-version",
+    LinkerdExistence = "linkerd-existence"
+}
+
+const LinkerdCheckTypes = [
+    LinkerdCheckType.KubernetesApi,
+    LinkerdCheckType.KubernetesVersion,
+    LinkerdCheckType.PreKubernetesClusterSetup,
+    LinkerdCheckType.PreKubernetesSetup,
+    LinkerdCheckType.LinkerdVersion,
+    LinkerdCheckType.LinkerdExistence
+] as string[];
 
 export type LinkerdCheckCLIOutput = shelljs.ExecOutputReturnValue | undefined;
 
@@ -103,34 +122,26 @@ export function install (kubectl: k8s.KubectlV1 | undefined) {
  */
 export function structuredCheckOutput (checkOutput: LinkerdCheckCLIOutput): LinkerdCheck {
     const stdout = checkOutput!.stdout;
-
     const statusMessagePrefix = "Status check results are";
-    const sections = [
-        "kubernetes-api",
-        "kubernetes-version",
-        "pre-kubernetes-cluster-setup",
-        "pre-kubernetes-setup",
-        "linkerd-version"
-    ];
 
     const linkerdOutputSections: LinkerdCheckSections = {};
-    let linkerdStatus: LinkerdCondition | any = {};
-
-    for (const section of sections) {
-        linkerdOutputSections[section] = [];
-    }
+    const includedSections: Array<string> = [];
+    let linkerdStatus: LinkerdCheckCondition | any = {};
 
     const lines = stdout.split('\n');
     let currentSection = '';
 
     for (let index = 0; index < lines.length; index++) {
         const outputLine = lines[index];
-        // Remove whitespace.
+
+        // Remove only the right whitespace, since the left is used to identify hints.
         const strippedOutputLine = outputLine.trimRight();
 
         // Begin section.
-        if (sections.includes(strippedOutputLine)) {
+        if (LinkerdCheckTypes.includes(strippedOutputLine)) {
             currentSection = strippedOutputLine;
+            linkerdOutputSections[strippedOutputLine] = [];
+            includedSections.push(strippedOutputLine);
             continue;
         }
 
@@ -156,7 +167,7 @@ export function structuredCheckOutput (checkOutput: LinkerdCheckCLIOutput): Link
             failedCheck.hint = failedCheckHints.hints.join(' ');
             linkerdOutputSections[currentSection].push(failedCheck);
 
-            // Skip ahead some amount of lines that cover the hint message.
+            // Move the main loop forward some amount of lines that cover the hint message.
             index = index + failedCheckHints.offset;
             continue;
         }
@@ -172,15 +183,16 @@ export function structuredCheckOutput (checkOutput: LinkerdCheckCLIOutput): Link
 
     return {
         status: linkerdStatus,
-        sections: linkerdOutputSections
+        sections: linkerdOutputSections,
+        includedSections: includedSections
     } as LinkerdCheck;
 }
 
-function checkStatusObject (line: string): LinkerdCondition {
+function checkStatusObject (line: string): LinkerdCheckCondition {
     return {
         succeeded: line.startsWith(SUCCESS_SYMBOL) ? true : false,
         message: line
-    } as LinkerdCondition;
+    } as LinkerdCheckCondition;
 }
 
 function failedStatusHints (index: number, lines: string[]) {
