@@ -11,6 +11,7 @@ export interface LinkerdCheck {
     sections: LinkerdCheckSections;
     status: LinkerdCheckCondition;
     includedSections: Array<string>;
+    failedSections: Array<string>;
 }
 
 export interface LinkerdCheckSections {
@@ -126,6 +127,7 @@ export function structuredCheckOutput (checkOutput: LinkerdCheckCLIOutput): Link
 
     const linkerdOutputSections: LinkerdCheckSections = {};
     const includedSections: Array<string> = [];
+    const failedSections: Array<string> = [];
     let linkerdStatus: LinkerdCheckCondition | any = {};
 
     const lines = stdout.split('\n');
@@ -163,6 +165,10 @@ export function structuredCheckOutput (checkOutput: LinkerdCheckCLIOutput): Link
             const failedCheck = checkStatusObject(strippedOutputLine);
             const failedCheckHints = failedStatusHints(index, lines);
 
+            if (!failedSections.includes(currentSection)) {
+                failedSections.push(currentSection);
+            }
+
             // Collapse the hint message.
             failedCheck.hint = failedCheckHints.hints.join(' ');
             linkerdOutputSections[currentSection].push(failedCheck);
@@ -184,7 +190,8 @@ export function structuredCheckOutput (checkOutput: LinkerdCheckCLIOutput): Link
     return {
         status: linkerdStatus,
         sections: linkerdOutputSections,
-        includedSections: includedSections
+        includedSections: includedSections,
+        failedSections: failedSections
     } as LinkerdCheck;
 }
 
@@ -214,3 +221,40 @@ function failedStatusHints (index: number, lines: string[]) {
         hints: hints
     };
 }
+
+function examplePrecheckOutput(): string {
+    return `
+kubernetes-api
+--------------
+√ can initialize the client
+√ can query the Kubernetes API
+
+kubernetes-version
+------------------
+× is running the minimum Kubernetes API version
+    Kubernetes is on version [1.9.11], but version [1.10.0] or more recent is required
+    see https://linkerd.io/checks/#k8s-version for hints
+
+pre-kubernetes-cluster-setup
+----------------------------
+√ control plane namespace does not already exist
+√ can create Namespaces
+√ can create ClusterRoles
+√ can create ClusterRoleBindings
+√ can create CustomResourceDefinitions
+
+pre-kubernetes-setup
+--------------------
+√ can create ServiceAccounts
+√ can create Services
+√ can create Deployments
+√ can create ConfigMaps
+
+linkerd-version
+---------------
+√ can determine the latest version
+√ cli is up-to-date
+
+Status check results are ×
+`
+};

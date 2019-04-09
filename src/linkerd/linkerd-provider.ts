@@ -32,8 +32,31 @@ function buildCheckMarkup (checkOutput: linkerd.LinkerdCheck): Array<any> {
         {
             h3: checkOutput.status.message
         },
-
     ];
+
+
+    if (!checkOutput.status.succeeded) {
+        markup.push({
+            p: "Failed Checks"
+        });
+
+        const failedSections = [];
+        for (const section of checkOutput.failedSections) {
+            failedSections.push({
+                link: {
+                    title: section,
+                    url: `#${section}`
+                }
+            });
+        }
+
+        markup.push({
+            ul: failedSections
+        });
+    }
+
+
+
 
     for (const sectionName of checkOutput.includedSections) {
         const conditions: Array<linkerd.LinkerdCheckCondition> = checkOutput.sections[sectionName];
