@@ -2,10 +2,16 @@ import * as vscode from 'vscode';
 import * as shelljs from 'shelljs';
 import * as k8s from 'vscode-kubernetes-tools-api';
 import * as config from './config';
+import {CheckStage, linkerdUri} from './linkerd-provider';
 
 const SUCCESS_SYMBOL = "√";
 const FAIL_SYMBOL = "×";
 const FailedCheckHintPrefix = "    "; // Yeah… I know :c - will move this to regex later.
+
+enum LinkerdInstallOptions {
+    Install = "Install",
+    Cancel = "Cancel"
+}
 
 export interface LinkerdCheck {
     sections: LinkerdCheckSections;
@@ -56,8 +62,14 @@ const exec = (args: string): shelljs.ExecOutputReturnValue | undefined => {
     return shelljs.exec(`${binaryPath} ${args}`);
 };
 
-export function check (): LinkerdCheckCLIOutput {
-    const out = exec('check --pre');
+export function check (stage: string): LinkerdCheckCLIOutput {
+    // Todo: intelligently determine if we've already installed linkerd.
+    let checkParam = '';
+    if (stage === CheckStage.BEFORE_INSTALL) {
+        checkParam = '--pre';
+    }
+
+    const out = exec(`check ${checkParam}`);
 
     if (!out) {
         return;
@@ -66,17 +78,32 @@ export function check (): LinkerdCheckCLIOutput {
     return out;
 }
 
-export function install (kubectl: k8s.KubectlV1 | undefined) {
+export async function install (kubectl: k8s.KubectlV1 | undefined) {
     if (!kubectl) {
         return;
     }
 
-    const checkOutput = check();
+    const checkOutput = check(CheckStage.BEFORE_INSTALL);
 
     if (!checkOutput || checkOutput.code !== 0) {
         vscode.window.showErrorMessage("Could not install linkerd - linkerd checks failed.");
+        vscode.commands.executeCommand(
+            "markdown.showPreview",
+            linkerdUri(CheckStage.BEFORE_INSTALL)
+        );
         return;
     }
+
+    const selection: string | undefined = await vscode.window.showInformationMessage(
+        "Linkerd checks passed. Continue to install?",
+        LinkerdInstallOptions.Install,
+        LinkerdInstallOptions.Cancel
+    );
+
+    if (!selection || (selection === LinkerdInstallOptions.Cancel)) {
+        return;
+    }
+
 
     const out = exec("install");
 
@@ -85,8 +112,6 @@ export function install (kubectl: k8s.KubectlV1 | undefined) {
     }
 
     const output = out.stdout.toString();
-
-    vscode.window.showInformationMessage("Linkerd checks passed. Continuing to install.");
 }
 
 /**
@@ -256,5 +281,5 @@ linkerd-version
 √ cli is up-to-date
 
 Status check results are ×
-`
+`;
 };

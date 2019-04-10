@@ -1,16 +1,23 @@
 import * as vscode from 'vscode';
+import * as querystring from 'querystring';
 import * as json2md from 'json2md';
 import * as linkerd from './linkerd';
 
 const ACCESS_SCHEME = 'linkerd';
 
-export function linkerdUri(): vscode.Uri {
-    return vscode.Uri.parse(`${ACCESS_SCHEME}://check`);
+export enum CheckStage {
+    BEFORE_INSTALL = "pre",
+    POST_INSTALL = "post"
+}
+
+export function linkerdUri(stage: string): vscode.Uri {
+    return vscode.Uri.parse(`${ACCESS_SCHEME}://check?stage=${stage}`);
 }
 
 export class LinkerdCheckProvider implements vscode.TextDocumentContentProvider {
     provideTextDocumentContent (uri: vscode.Uri, _token: vscode.CancellationToken): vscode.ProviderResult<string> {
-        const checkOutput: linkerd.LinkerdCheckCLIOutput = linkerd.check();
+        const query = querystring.parse(uri.query);
+        const checkOutput: linkerd.LinkerdCheckCLIOutput = linkerd.check(query.stage as string);
 
         if (!checkOutput) {
             return "Could not fetch Linkerd check results.";
@@ -34,7 +41,6 @@ function buildCheckMarkup (checkOutput: linkerd.LinkerdCheck): Array<any> {
         },
     ];
 
-
     if (!checkOutput.status.succeeded) {
         markup.push({
             p: "Failed Checks"
@@ -42,10 +48,11 @@ function buildCheckMarkup (checkOutput: linkerd.LinkerdCheck): Array<any> {
 
         const failedSections = [];
         for (const section of checkOutput.failedSections) {
+            // the link here doesn't work, although it should - perhaps a vscode issue.
             failedSections.push({
                 link: {
                     title: section,
-                    url: `#${section}`
+                    source: `#${section}`
                 }
             });
         }
@@ -54,9 +61,6 @@ function buildCheckMarkup (checkOutput: linkerd.LinkerdCheck): Array<any> {
             ul: failedSections
         });
     }
-
-
-
 
     for (const sectionName of checkOutput.includedSections) {
         const conditions: Array<linkerd.LinkerdCheckCondition> = checkOutput.sections[sectionName];

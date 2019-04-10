@@ -3,7 +3,7 @@
 import * as vscode from 'vscode';
 import * as k8s from 'vscode-kubernetes-tools-api';
 import * as linkerd from './linkerd/linkerd';
-import { linkerdUri, LinkerdCheckProvider } from './linkerd/linkerd-provider';
+import { linkerdUri, LinkerdCheckProvider, CheckStage } from './linkerd/linkerd-provider';
 
 let clusterExplorer: k8s.ClusterExplorerV1 | undefined = undefined;
 let kubectl: k8s.KubectlV1 | undefined = undefined;
@@ -36,13 +36,13 @@ export async function activate (context: vscode.ExtensionContext) {
  * - performs a post-check after the installation.
  * @param commandTarget
  */
-function installLinkerd (commandTarget: any) {
+async function installLinkerd (commandTarget: any) {
 	const clusterName = clusterNode(commandTarget);
 	if (!clusterName) {
 		return undefined;
     }
 
-    linkerd.install(kubectl);
+    await linkerd.install(kubectl);
 }
 
 async function checkLinkerd (commandTarget: any) {
@@ -51,7 +51,11 @@ async function checkLinkerd (commandTarget: any) {
 		return undefined;
     }
 
-    await vscode.commands.executeCommand("markdown.showPreview", linkerdUri());
+    // todo: intelligently determine if linkerd is installed.
+    await vscode.commands.executeCommand(
+        "markdown.showPreview",
+        linkerdUri(CheckStage.BEFORE_INSTALL)
+    );
 }
 
 function clusterNode (commandTarget: any): string | undefined {
