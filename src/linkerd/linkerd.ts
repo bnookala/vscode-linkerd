@@ -1,8 +1,11 @@
 import * as vscode from 'vscode';
 import * as shelljs from 'shelljs';
+import * as fs from 'fs';
 import * as k8s from 'vscode-kubernetes-tools-api';
+import { file, FileResult, tmpName, DirectoryResult } from 'tmp-promise';
 import * as config from './config';
 import {CheckStage, linkerdUri} from './linkerd-provider';
+
 
 const SUCCESS_SYMBOL = "√";
 const FAIL_SYMBOL = "×";
@@ -104,14 +107,19 @@ export async function install (kubectl: k8s.KubectlV1 | undefined) {
         return;
     }
 
-
     const out = exec("install");
 
     if (!out) {
         return;
     }
 
-    const output = out.stdout.toString();
+    const tempFile: FileResult = await file();
+    const bytesWritten = fs.writeSync(tempFile.fd, out.stdout.toString(), undefined);
+
+    // TODO: invoke kubectl on file.
+
+    // Clean up our tempFile handle.
+    tempFile.cleanup();
 }
 
 /**
@@ -282,4 +290,4 @@ linkerd-version
 
 Status check results are ×
 `;
-};
+}
