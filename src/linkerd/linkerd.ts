@@ -2,10 +2,9 @@ import * as vscode from 'vscode';
 import * as shelljs from 'shelljs';
 import * as fs from 'fs';
 import * as k8s from 'vscode-kubernetes-tools-api';
-import { file, FileResult, tmpName, DirectoryResult } from 'tmp-promise';
+import { file, FileResult } from 'tmp-promise';
 import * as config from './config';
-import {CheckStage, linkerdUri} from './linkerd-provider';
-
+import {CheckStage, linkerdCheckUri} from './linkerd-provider';
 
 const SUCCESS_SYMBOL = "√";
 const FAIL_SYMBOL = "×";
@@ -92,7 +91,7 @@ export async function install (kubectl: k8s.KubectlV1 | undefined) {
         vscode.window.showErrorMessage("Could not install linkerd - linkerd checks failed.");
         vscode.commands.executeCommand(
             "markdown.showPreview",
-            linkerdUri(CheckStage.BEFORE_INSTALL)
+            linkerdCheckUri(CheckStage.BEFORE_INSTALL)
         );
         return;
     }
@@ -116,7 +115,24 @@ export async function install (kubectl: k8s.KubectlV1 | undefined) {
     const tempFile: FileResult = await file();
     const bytesWritten = fs.writeSync(tempFile.fd, out.stdout.toString(), undefined);
 
-    // TODO: invoke kubectl on file.
+    if (bytesWritten === 0) {
+        vscode.window.showErrorMessage("Something went wrong attempting to write Linkerd yaml to disk.");
+        return;
+    }
+
+    const linkerdInstallCommand = `apply -f ${tempFile.path}`;
+    const shellResult: k8s.KubectlV1.ShellResult | undefined = await kubectl.invokeCommand(linkerdInstallCommand);
+
+    if (!shellResult) {
+        return;
+    }
+
+    if (shellResult.code !== 0) {
+        vscode.window.showErrorMessage("Could not install Linkerd.");
+        return;
+    }
+
+
 
     // Clean up our tempFile handle.
     tempFile.cleanup();
@@ -250,7 +266,7 @@ function failedStatusHints (index: number, lines: string[]) {
     }
 
     return {
-        offset: hints.length - 1,// - 1, Since the next iteration of the loop will also increment.
+        offset: hints.length - 1, // - 1, Since the next iteration of the loop will also increment.
         hints: hints
     };
 }
