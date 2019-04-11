@@ -1,10 +1,11 @@
 import * as vscode from 'vscode';
-import * as shelljs from 'shelljs';
 import * as fs from 'fs';
+import * as querystring from 'querystring';
 import * as k8s from 'vscode-kubernetes-tools-api';
+import * as shelljs from 'shelljs';
 import { file, FileResult } from 'tmp-promise';
 import * as config from './config';
-import {CheckStage, linkerdCheckUri} from './linkerd-provider';
+import {CheckStage, linkerdCheckUri, linkerdInstallUri} from './linkerd-provider';
 
 const SUCCESS_SYMBOL = "√";
 const FAIL_SYMBOL = "×";
@@ -132,7 +133,11 @@ export async function install (kubectl: k8s.KubectlV1 | undefined) {
         return;
     }
 
-
+    const stringifiedOut = querystring.stringify(shellResult.stdout.toString());
+    vscode.commands.executeCommand(
+        "markdown.showPreview",
+        linkerdInstallUri(stringifiedOut)
+    );
 
     // Clean up our tempFile handle.
     tempFile.cleanup();

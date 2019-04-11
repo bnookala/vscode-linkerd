@@ -3,7 +3,7 @@
 import * as vscode from 'vscode';
 import * as k8s from 'vscode-kubernetes-tools-api';
 import * as linkerd from './linkerd/linkerd';
-import { linkerdCheckUri, LinkerdCheckProvider, CheckStage } from './linkerd/linkerd-provider';
+import { linkerdCheckUri, LinkerdDocumentProvider, CheckStage } from './linkerd/linkerd-provider';
 
 let clusterExplorer: k8s.ClusterExplorerV1 | undefined = undefined;
 let kubectl: k8s.KubectlV1 | undefined = undefined;
@@ -22,7 +22,7 @@ export async function activate (context: vscode.ExtensionContext) {
     const subscriptions = [
 		vscode.commands.registerCommand('vslinkerd.install', installLinkerd),
         vscode.commands.registerCommand('vslinkerd.check', checkLinkerd),
-        vscode.workspace.registerTextDocumentContentProvider('linkerd', new LinkerdCheckProvider())
+        vscode.workspace.registerTextDocumentContentProvider('linkerd', new LinkerdDocumentProvider())
     ];
 
     context.subscriptions.push(...subscriptions);
