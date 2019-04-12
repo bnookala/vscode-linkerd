@@ -16,6 +16,12 @@ enum LinkerdInstallOptions {
     Cancel = "Cancel"
 }
 
+export interface LinkerdExistence {
+    succeeded: boolean;
+    result: boolean;
+    message?: string;
+}
+
 export interface LinkerdCheck {
     sections: LinkerdCheckSections;
     status: LinkerdCheckCondition;
@@ -66,7 +72,6 @@ const exec = (args: string): shelljs.ExecOutputReturnValue | undefined => {
 };
 
 export function check (stage: string): LinkerdCheckCLIOutput {
-    // Todo: intelligently determine if we've already installed linkerd.
     let checkParam = '';
     if (stage === CheckStage.BEFORE_INSTALL) {
         checkParam = '--pre';
@@ -81,6 +86,64 @@ export function check (stage: string): LinkerdCheckCLIOutput {
     return out;
 }
 
+/**
+ * Check if Linkerd is installed on the currently selected cluster.
+ * @param kubectl
+ * @returns LinkerdExistence object
+ */
+export async function isInstalled (kubectl: k8s.KubectlV1 | undefined): Promise<LinkerdExistence> {
+    // No Kubectl is always an error.
+    if (!kubectl) {
+        return {
+            succeeded: false,
+            result: false,
+            message: "Kubectl not found."
+        };
+    }
+
+    const ns = config.linkerdNamespace();
+    const nsOut = await kubectl.invokeCommand(`get ns ${ns} -o json`);
+
+    // Error invoking Kubectl
+    if (!nsOut) {
+        return {
+            succeeded: false,
+            result: false,
+            message: "Kubectl invocation failed."
+        };
+    }
+
+    if (nsOut && nsOut.code !== 0 && nsOut.stderr) {
+        // This is actually a success condition in our case
+        // since linkerd is _not_ installed, but the operation
+        // to determine that was successful.
+        if (nsOut.stderr.toString().includes("NotFound")) {
+            return {
+                succeeded: true,
+                result: false
+            };
+        }
+
+        // Otherwise, we want to report the error.
+        return {
+            succeeded: false,
+            result: false,
+            message: nsOut.stderr
+        };
+    }
+
+    // Namespace does exist -- Linkerd should not be installed.
+    return {
+        succeeded: true,
+        result: true
+    };
+}
+
+/**
+ * Initiate the process to install Linkerd. We assume the caller has already made
+ * the check to `isInstalled`.
+ * @param kubectl
+ */
 export async function install (kubectl: k8s.KubectlV1 | undefined) {
     if (!kubectl) {
         return;
@@ -106,6 +169,38 @@ export async function install (kubectl: k8s.KubectlV1 | undefined) {
     if (!selection || (selection === LinkerdInstallOptions.Cancel)) {
         return;
     }
+
+    /*
+    TODO: Gather custom inputs. Linkerd can be installed with the following arguments:
+
+    Flags:
+      --api-port uint                   Port where the Linkerd controller is running (default 8086)
+      --control-port uint               Proxy port to use for control (default 4190)
+      --controller-log-level string     Log level for the controller and web components (default "info")
+      --controller-replicas uint        Replicas of the controller to deploy (default 1)
+      --controller-uid int              Run the control plane components under this user ID (default 2103)
+      --disable-external-profiles       Disables service profiles for non-Kubernetes services
+      --disable-h2-upgrade              Prevents the controller from instructing proxies to perform transparent HTTP/2 upgrading (default false)
+      --ha                              Experimental: Enable HA deployment config for the control plane (default false)
+  -h, --help                            help for install
+      --image-pull-policy string        Docker image pull policy (default "IfNotPresent")
+      --inbound-port uint               Proxy port to use for inbound traffic (default 4143)
+      --init-image string               Linkerd init container image name (default "gcr.io/linkerd-io/proxy-init")
+  -v, --linkerd-version string          Tag to be used for Linkerd images (default "stable-2.2.1")
+      --metrics-port uint               Proxy port to serve metrics on (default 4191)
+      --outbound-port uint              Proxy port to use for outbound traffic (default 4140)
+      --proxy-auto-inject               Enable proxy sidecar auto-injection via a webhook (default false)
+      --proxy-cpu string                Amount of CPU units that the proxy sidecar requests
+      --proxy-image string              Linkerd proxy container image name (default "gcr.io/linkerd-io/proxy")
+      --proxy-log-level string          Log level for the proxy (default "warn,linkerd2_proxy=info")
+      --proxy-memory string             Amount of Memory that the proxy sidecar requests
+      --proxy-uid int                   Run the proxy under this user ID (default 2102)
+      --registry string                 Docker registry to pull images from (default "gcr.io/linkerd-io")
+      --single-namespace                Experimental: Configure the control plane to only operate in the installed namespace (default false)
+      --skip-inbound-ports uintSlice    Ports that should skip the proxy and send directly to the application (default [])
+      --skip-outbound-ports uintSlice   Outbound ports that should skip the proxy (default [])
+      --tls string                      Enable TLS; valid settings: "optional"
+      */
 
     const out = exec("install");
 

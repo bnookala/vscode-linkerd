@@ -15,11 +15,11 @@ export enum LinkerdFunction {
     INSTALL = 'install'
 }
 
-export function linkerdCheckUri(stage: string): vscode.Uri {
+export function linkerdCheckUri (stage: string): vscode.Uri {
     return vscode.Uri.parse(`${ACCESS_SCHEME}://check?stage=${stage}`);
 }
 
-export function linkerdInstallUri(output: string): vscode.Uri {
+export function linkerdInstallUri (output: string): vscode.Uri {
     return vscode.Uri.parse(`${ACCESS_SCHEME}://install?output=${output}`);
 }
 
@@ -34,13 +34,13 @@ export class LinkerdDocumentProvider implements vscode.TextDocumentContentProvid
     }
 }
 
-function linkerdInstallDocument(uri: vscode.Uri): string {
+function linkerdInstallDocument (uri: vscode.Uri): string {
     const installMarkup = buildInstallMarkup(uri.query);
 
     return json2md(installMarkup);
 }
 
-function linkerdCheckDocument(uri: vscode.Uri): string {
+function linkerdCheckDocument (uri: vscode.Uri): string {
     const query = querystring.parse(uri.query);
     const checkOutput: linkerd.LinkerdCheckCLIOutput = linkerd.check(query.stage as string);
 
@@ -112,7 +112,7 @@ function buildCheckMarkup (checkOutput: linkerd.LinkerdCheck): Array<any> {
     return markup;
 }
 
-function buildInstallMarkup(installOutput: string): Array<any> {
+function buildInstallMarkup (installOutput: string): Array<any> {
     const markup:Array<any> = [
         {
             h2: "VSCode Linkerd: Install Results"

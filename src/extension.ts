@@ -42,7 +42,20 @@ async function installLinkerd (commandTarget: any) {
 		return undefined;
     }
 
-    await linkerd.install(kubectl);
+    const isInstalled = await linkerd.isInstalled(kubectl);
+
+    // Missing kubectl, invocation failed.
+    if (!isInstalled.succeeded && !isInstalled.result && isInstalled.message) {
+        vscode.window.showErrorMessage(isInstalled.message);
+        return;
+    }
+
+    if (isInstalled.succeeded && isInstalled.result === false) {
+        await linkerd.install(kubectl);
+        return;
+    }
+
+    vscode.window.showInformationMessage("Linkerd is already installed.");
 }
 
 async function checkLinkerd (commandTarget: any) {
@@ -51,10 +64,22 @@ async function checkLinkerd (commandTarget: any) {
 		return undefined;
     }
 
-    // todo: intelligently determine if linkerd is installed.
+    const isInstalled = await linkerd.isInstalled(kubectl);
+    let stage:CheckStage = CheckStage.BEFORE_INSTALL;
+
+    // Missing kubectl, invocation failed.
+    if (!isInstalled.succeeded && !isInstalled.result && isInstalled.message) {
+        vscode.window.showErrorMessage(isInstalled.message);
+        return;
+    }
+
+    if (isInstalled.succeeded && isInstalled.result) {
+        stage = CheckStage.POST_INSTALL;
+    }
+
     await vscode.commands.executeCommand(
         "markdown.showPreview",
-        linkerdCheckUri(CheckStage.BEFORE_INSTALL)
+        linkerdCheckUri(stage)
     );
 }
 

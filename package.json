@@ -49,6 +49,11 @@
 						"linkerd-path": {
 							"type": "string",
 							"description": "File path to a Linkerd binary"
+						},
+						"linkerd-namespace": {
+							"type": "string",
+							"description": "Namespace for Linkerd",
+							"default": "linkerd"
 						}
 					}
 				}
