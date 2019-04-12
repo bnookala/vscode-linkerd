@@ -5,7 +5,7 @@ import * as k8s from 'vscode-kubernetes-tools-api';
 import * as shelljs from 'shelljs';
 import { file, FileResult } from 'tmp-promise';
 import * as config from './config';
-import {CheckStage, linkerdCheckUri, linkerdInstallUri} from './linkerd-provider';
+import { CheckStage, linkerdCheckUri, linkerdInstallUri } from './linkerd-provider';
 
 const SUCCESS_SYMBOL = "√";
 const FAIL_SYMBOL = "×";
@@ -114,6 +114,7 @@ export async function install (kubectl: k8s.KubectlV1 | undefined) {
     }
 
     const tempFile: FileResult = await file();
+    // Todo: make this asynchronous - add some kind of notifier
     const bytesWritten = fs.writeSync(tempFile.fd, out.stdout.toString(), undefined);
 
     if (bytesWritten === 0) {
@@ -121,6 +122,7 @@ export async function install (kubectl: k8s.KubectlV1 | undefined) {
         return;
     }
 
+    // Operation could take some time - add some kind of progress bar/notifier.
     const linkerdInstallCommand = `apply -f ${tempFile.path}`;
     const shellResult: k8s.KubectlV1.ShellResult | undefined = await kubectl.invokeCommand(linkerdInstallCommand);
 
@@ -133,7 +135,7 @@ export async function install (kubectl: k8s.KubectlV1 | undefined) {
         return;
     }
 
-    const stringifiedOut = querystring.stringify(shellResult.stdout.toString());
+    const stringifiedOut = querystring.escape(shellResult.stdout.toString());
     vscode.commands.executeCommand(
         "markdown.showPreview",
         linkerdInstallUri(stringifiedOut)
