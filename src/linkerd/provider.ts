@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import * as querystring from 'querystring';
 import * as json2md from 'json2md';
 import * as linkerd from './linkerd';
+import { LinkerdCheckCLIOutput } from './exec';
 
 const ACCESS_SCHEME = 'linkerd';
 
@@ -42,7 +43,7 @@ function linkerdInstallDocument (uri: vscode.Uri): string {
 
 function linkerdCheckDocument (uri: vscode.Uri): string {
     const query = querystring.parse(uri.query);
-    const checkOutput: linkerd.LinkerdCheckCLIOutput = linkerd.check(query.stage as string);
+    const checkOutput: LinkerdCheckCLIOutput = linkerd.check(query.stage as string);
 
     if (!checkOutput) {
         return "Could not fetch Linkerd check results.";

@@ -3,7 +3,8 @@
 import * as vscode from 'vscode';
 import * as k8s from 'vscode-kubernetes-tools-api';
 import * as linkerd from './linkerd/linkerd';
-import { linkerdCheckUri, LinkerdDocumentProvider, CheckStage } from './linkerd/linkerd-provider';
+import { isInstalled } from './linkerd/install';
+import { linkerdCheckUri, LinkerdDocumentProvider, CheckStage } from './linkerd/provider';
 
 let clusterExplorer: k8s.ClusterExplorerV1 | undefined = undefined;
 let kubectl: k8s.KubectlV1 | undefined = undefined;
@@ -42,15 +43,15 @@ async function installLinkerd (commandTarget: any) {
 		return undefined;
     }
 
-    const isInstalled = await linkerd.isInstalled(kubectl);
+    const installed = await isInstalled(kubectl);
 
     // Missing kubectl, invocation failed.
-    if (!isInstalled.succeeded && !isInstalled.result && isInstalled.message) {
-        vscode.window.showErrorMessage(isInstalled.message);
+    if (!installed.succeeded && !installed.result && installed.message) {
+        vscode.window.showErrorMessage(installed.message);
         return;
     }
 
-    if (isInstalled.succeeded && isInstalled.result === false) {
+    if (installed.succeeded && installed.result === false) {
         await linkerd.install(kubectl);
         return;
     }
@@ -64,16 +65,16 @@ async function checkLinkerd (commandTarget: any) {
 		return undefined;
     }
 
-    const isInstalled = await linkerd.isInstalled(kubectl);
+    const installed = await isInstalled(kubectl);
     let stage:CheckStage = CheckStage.BEFORE_INSTALL;
 
     // Missing kubectl, invocation failed.
-    if (!isInstalled.succeeded && !isInstalled.result && isInstalled.message) {
-        vscode.window.showErrorMessage(isInstalled.message);
+    if (!installed.succeeded && !installed.result && installed.message) {
+        vscode.window.showErrorMessage(installed.message);
         return;
     }
 
-    if (isInstalled.succeeded && isInstalled.result) {
+    if (installed.succeeded && installed.result) {
         stage = CheckStage.POST_INSTALL;
     }
 
