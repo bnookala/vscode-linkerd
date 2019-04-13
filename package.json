@@ -13,6 +13,9 @@
 		"onCommand:vslinkerd.install",
 		"onCommand:vslinkerd.check"
 	],
+	"extensionDependencies": [
+		"ms-kubernetes-tools.vscode-kubernetes-tools"
+	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"commands": [
