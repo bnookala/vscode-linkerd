@@ -13,7 +13,8 @@ const FailedCheckHintPrefix = "    "; // Yeah… I know :c - will move this to r
 
 enum LinkerdInstallOptions {
     Install = "Install",
-    Cancel = "Cancel"
+    Cancel = "Cancel",
+    Configure = "Configure"
 }
 
 export interface LinkerdExistence {
@@ -163,46 +164,32 @@ export async function install (kubectl: k8s.KubectlV1 | undefined) {
     const selection: string | undefined = await vscode.window.showInformationMessage(
         "Linkerd checks passed. Continue to install?",
         LinkerdInstallOptions.Install,
+        LinkerdInstallOptions.Configure,
         LinkerdInstallOptions.Cancel
     );
 
-    if (!selection || (selection === LinkerdInstallOptions.Cancel)) {
+    if (!selection) {
         return;
     }
 
-    /*
-    TODO: Gather custom inputs. Linkerd can be installed with the following arguments:
+    let installArguments: string = "";
 
-    Flags:
-      --api-port uint                   Port where the Linkerd controller is running (default 8086)
-      --control-port uint               Proxy port to use for control (default 4190)
-      --controller-log-level string     Log level for the controller and web components (default "info")
-      --controller-replicas uint        Replicas of the controller to deploy (default 1)
-      --controller-uid int              Run the control plane components under this user ID (default 2103)
-      --disable-external-profiles       Disables service profiles for non-Kubernetes services
-      --disable-h2-upgrade              Prevents the controller from instructing proxies to perform transparent HTTP/2 upgrading (default false)
-      --ha                              Experimental: Enable HA deployment config for the control plane (default false)
-  -h, --help                            help for install
-      --image-pull-policy string        Docker image pull policy (default "IfNotPresent")
-      --inbound-port uint               Proxy port to use for inbound traffic (default 4143)
-      --init-image string               Linkerd init container image name (default "gcr.io/linkerd-io/proxy-init")
-  -v, --linkerd-version string          Tag to be used for Linkerd images (default "stable-2.2.1")
-      --metrics-port uint               Proxy port to serve metrics on (default 4191)
-      --outbound-port uint              Proxy port to use for outbound traffic (default 4140)
-      --proxy-auto-inject               Enable proxy sidecar auto-injection via a webhook (default false)
-      --proxy-cpu string                Amount of CPU units that the proxy sidecar requests
-      --proxy-image string              Linkerd proxy container image name (default "gcr.io/linkerd-io/proxy")
-      --proxy-log-level string          Log level for the proxy (default "warn,linkerd2_proxy=info")
-      --proxy-memory string             Amount of Memory that the proxy sidecar requests
-      --proxy-uid int                   Run the proxy under this user ID (default 2102)
-      --registry string                 Docker registry to pull images from (default "gcr.io/linkerd-io")
-      --single-namespace                Experimental: Configure the control plane to only operate in the installed namespace (default false)
-      --skip-inbound-ports uintSlice    Ports that should skip the proxy and send directly to the application (default [])
-      --skip-outbound-ports uintSlice   Outbound ports that should skip the proxy (default [])
-      --tls string                      Enable TLS; valid settings: "optional"
-      */
+    switch (selection) {
+        case LinkerdInstallOptions.Cancel:
+            return;
+        case LinkerdInstallOptions.Configure:
+            // not implemented.
+            installArguments = gatherInstallConfiguration();
+            break;
+        case LinkerdInstallOptions.Install:
+            installArguments = "";
+            break;
+        default:
+            vscode.window.showErrorMessage("Could not parse install selection");
+            break;
+    }
 
-    const out = exec("install");
+    const out = exec(`install ${installArguments}`);
 
     if (!out) {
         return;
@@ -238,6 +225,41 @@ export async function install (kubectl: k8s.KubectlV1 | undefined) {
 
     // Clean up our tempFile handle.
     tempFile.cleanup();
+}
+
+function gatherInstallConfiguration (): string {
+    /*
+    TODO: Gather custom inputs. Linkerd can be installed with the following arguments:
+
+    Flags:
+      --api-port uint                   Port where the Linkerd controller is running (default 8086)
+      --control-port uint               Proxy port to use for control (default 4190)
+      --controller-log-level string     Log level for the controller and web components (default "info")
+      --controller-replicas uint        Replicas of the controller to deploy (default 1)
+      --controller-uid int              Run the control plane components under this user ID (default 2103)
+      --disable-external-profiles       Disables service profiles for non-Kubernetes services
+      --disable-h2-upgrade              Prevents the controller from instructing proxies to perform transparent HTTP/2 upgrading (default false)
+      --ha                              Experimental: Enable HA deployment config for the control plane (default false)
+  -h, --help                            help for install
+      --image-pull-policy string        Docker image pull policy (default "IfNotPresent")
+      --inbound-port uint               Proxy port to use for inbound traffic (default 4143)
+      --init-image string               Linkerd init container image name (default "gcr.io/linkerd-io/proxy-init")
+  -v, --linkerd-version string          Tag to be used for Linkerd images (default "stable-2.2.1")
+      --metrics-port uint               Proxy port to serve metrics on (default 4191)
+      --outbound-port uint              Proxy port to use for outbound traffic (default 4140)
+      --proxy-auto-inject               Enable proxy sidecar auto-injection via a webhook (default false)
+      --proxy-cpu string                Amount of CPU units that the proxy sidecar requests
+      --proxy-image string              Linkerd proxy container image name (default "gcr.io/linkerd-io/proxy")
+      --proxy-log-level string          Log level for the proxy (default "warn,linkerd2_proxy=info")
+      --proxy-memory string             Amount of Memory that the proxy sidecar requests
+      --proxy-uid int                   Run the proxy under this user ID (default 2102)
+      --registry string                 Docker registry to pull images from (default "gcr.io/linkerd-io")
+      --single-namespace                Experimental: Configure the control plane to only operate in the installed namespace (default false)
+      --skip-inbound-ports uintSlice    Ports that should skip the proxy and send directly to the application (default [])
+      --skip-outbound-ports uintSlice   Outbound ports that should skip the proxy (default [])
+      --tls string                      Enable TLS; valid settings: "optional"
+      */
+     return "";
 }
 
 /**
