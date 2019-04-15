@@ -2,28 +2,37 @@
 
 import * as vscode from 'vscode';
 import * as k8s from 'vscode-kubernetes-tools-api';
-import * as linkerd from './linkerd/linkerd';
-import { isInstalled } from './linkerd/install';
-import { linkerdCheckUri, LinkerdDocumentProvider, CheckStage } from './linkerd/provider';
+import { InstallController } from './linkerd/install';
+import { CheckController } from './linkerd/check';
+import { linkerdCheckUri, DocumentController, CheckStage } from './linkerd/provider';
 
-let clusterExplorer: k8s.ClusterExplorerV1 | undefined = undefined;
 let kubectl: k8s.KubectlV1 | undefined = undefined;
+let clusterExplorer: k8s.ClusterExplorerV1 | undefined = undefined;
+
+let installController: InstallController | undefined = undefined;
+let checkController: CheckController | undefined = undefined;
+let documentController: DocumentController | undefined = undefined;
 
 export async function activate (context: vscode.ExtensionContext) {
 	const clusterExplorerAPI = await k8s.extension.clusterExplorer.v1;
 	const kubectlAPI = await k8s.extension.kubectl.v1;
 
-    if (clusterExplorerAPI.available && kubectlAPI.available) {
-		clusterExplorer = clusterExplorerAPI.api;
-		kubectl = kubectlAPI.api;
-    } else {
+    if (!clusterExplorerAPI.available ||  !kubectlAPI.available) {
         vscode.window.showErrorMessage("Unable to access Kubernetes extension");
-	}
+        return;
+    }
+
+    clusterExplorer = clusterExplorerAPI.api;
+    kubectl = kubectlAPI.api;
+
+    checkController = new CheckController();
+    installController = new InstallController(kubectl, checkController);
+    documentController = new DocumentController(checkController);
 
     const subscriptions = [
 		vscode.commands.registerCommand('vslinkerd.install', installLinkerd),
         vscode.commands.registerCommand('vslinkerd.check', checkLinkerd),
-        vscode.workspace.registerTextDocumentContentProvider('linkerd', new LinkerdDocumentProvider())
+        vscode.workspace.registerTextDocumentContentProvider('linkerd', documentController)
     ];
 
     context.subscriptions.push(...subscriptions);
@@ -39,11 +48,11 @@ export async function activate (context: vscode.ExtensionContext) {
  */
 async function installLinkerd (commandTarget: any) {
 	const clusterName = clusterNode(commandTarget);
-	if (!clusterName) {
+	if (!clusterName || !installController || !checkController) {
 		return undefined;
     }
 
-    const installed = await isInstalled(kubectl);
+    const installed = await installController.isInstalled();
 
     // Missing kubectl, invocation failed.
     if (!installed.succeeded && !installed.result && installed.message) {
@@ -52,7 +61,7 @@ async function installLinkerd (commandTarget: any) {
     }
 
     if (installed.succeeded && installed.result === false) {
-        await linkerd.install(kubectl);
+        await installController.install();
         return;
     }
 
@@ -61,11 +70,11 @@ async function installLinkerd (commandTarget: any) {
 
 async function checkLinkerd (commandTarget: any) {
 	const clusterName = clusterNode(commandTarget);
-	if (!clusterName) {
+	if (!clusterName || !installController) {
 		return undefined;
     }
 
-    const installed = await isInstalled(kubectl);
+    const installed = await installController.isInstalled();
     let stage:CheckStage = CheckStage.BEFORE_INSTALL;
 
     // Missing kubectl, invocation failed.

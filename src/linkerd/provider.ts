@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as querystring from 'querystring';
 import * as json2md from 'json2md';
-import * as linkerd from './linkerd';
+import * as check from './check';
 import { LinkerdCheckCLIOutput } from './exec';
 
 const ACCESS_SCHEME = 'linkerd';
@@ -24,106 +24,114 @@ export function linkerdInstallUri (output: string): vscode.Uri {
     return vscode.Uri.parse(`${ACCESS_SCHEME}://install?output=${output}`);
 }
 
-export class LinkerdDocumentProvider implements vscode.TextDocumentContentProvider {
-    provideTextDocumentContent (uri: vscode.Uri, _token: vscode.CancellationToken): vscode.ProviderResult<string> {
-        if (uri.authority === LinkerdFunction.CHECK) {
-            return linkerdCheckDocument(uri);
+export class DocumentController implements vscode.TextDocumentContentProvider {
+    private checkController: check.CheckController | undefined;
+
+    constructor (checkController: check.CheckController) {
+        this.checkController = checkController;
+    }
+
+    provideTextDocumentContent = (uri: vscode.Uri, _token: vscode.CancellationToken):vscode.ProviderResult<string> => {
+        if(uri.authority === LinkerdFunction.CHECK) {
+            return this.linkerdCheckDocument(uri);
         } else if (uri.authority === LinkerdFunction.INSTALL) {
-            return linkerdInstallDocument(uri);
+            return this.linkerdInstallDocument(uri);
+        }
+    }
+
+    linkerdInstallDocument = (uri: vscode.Uri): string => {
+        const installMarkup = this.buildInstallMarkup(uri.query);
+        return json2md(installMarkup);
+    }
+
+    linkerdCheckDocument = (uri: vscode.Uri): string | undefined => {
+        if (!this.checkController) {
+            return;
         }
 
-    }
-}
+        const query = querystring.parse(uri.query);
+        const checkOutput: LinkerdCheckCLIOutput = this.checkController.check(query.stage as string);
 
-function linkerdInstallDocument (uri: vscode.Uri): string {
-    const installMarkup = buildInstallMarkup(uri.query);
+        if (!checkOutput) {
+            return "Could not fetch Linkerd check results.";
+        }
 
-    return json2md(installMarkup);
-}
+        const checkMarkup = this.buildCheckMarkup(
+            this.checkController.structuredCheckOutput(checkOutput)
+        );
 
-function linkerdCheckDocument (uri: vscode.Uri): string {
-    const query = querystring.parse(uri.query);
-    const checkOutput: LinkerdCheckCLIOutput = linkerd.check(query.stage as string);
-
-    if (!checkOutput) {
-        return "Could not fetch Linkerd check results.";
+        return json2md(checkMarkup);
     }
 
-    const checkMarkup = buildCheckMarkup(
-        linkerd.structuredCheckOutput(checkOutput)
-    );
+    buildCheckMarkup = (checkOutput: check.LinkerdCheck): Array<any> => {
+        const markup:Array<any> = [
+            {
+                h2: "VSCode Linkerd: Check Results"
+            },
+            {
+                h3: checkOutput.status.message
+            },
+        ];
 
-    return json2md(checkMarkup);
-}
+        if (!checkOutput.status.succeeded) {
+            markup.push({
+                p: "Failed Checks"
+            });
 
-function buildCheckMarkup (checkOutput: linkerd.LinkerdCheck): Array<any> {
-    const markup:Array<any> = [
-        {
-            h2: "VSCode Linkerd: Check Results"
-        },
-        {
-            h3: checkOutput.status.message
-        },
-    ];
+            const failedSections = [];
+            for (const section of checkOutput.failedSections) {
+                // the link here doesn't work, although it should - perhaps a vscode issue.
+                failedSections.push({
+                    link: {
+                        title: section,
+                        source: `#${section}`
+                    }
+                });
+            }
 
-    if (!checkOutput.status.succeeded) {
-        markup.push({
-            p: "Failed Checks"
-        });
-
-        const failedSections = [];
-        for (const section of checkOutput.failedSections) {
-            // the link here doesn't work, although it should - perhaps a vscode issue.
-            failedSections.push({
-                link: {
-                    title: section,
-                    source: `#${section}`
-                }
+            markup.push({
+                ul: failedSections
             });
         }
 
-        markup.push({
-            ul: failedSections
-        });
-    }
+        for (const sectionName of checkOutput.includedSections) {
+            const conditions: Array<check.LinkerdCheckCondition> = checkOutput.sections[sectionName];
+            markup.push({
+                h3: sectionName
+            });
 
-    for (const sectionName of checkOutput.includedSections) {
-        const conditions: Array<linkerd.LinkerdCheckCondition> = checkOutput.sections[sectionName];
-        markup.push({
-            h3: sectionName
-        });
+            const conditionList = [];
 
-        const conditionList = [];
+            for (const sectionCondition of conditions) {
+                conditionList.push(sectionCondition.message);
 
-        for (const sectionCondition of conditions) {
-            conditionList.push(sectionCondition.message);
-
-            if (!sectionCondition.succeeded && sectionCondition.hint) {
-                conditionList.push({
-                    ul: [sectionCondition.hint]
-                });
+                if (!sectionCondition.succeeded && sectionCondition.hint) {
+                    conditionList.push({
+                        ul: [sectionCondition.hint]
+                    });
+                }
             }
+
+            markup.push({
+                ul: conditionList
+            });
         }
 
-        markup.push({
-            ul: conditionList
-        });
+        return markup;
     }
 
-    return markup;
-}
+    buildInstallMarkup = (installOutput: string): Array<any> => {
+        const markup:Array<any> = [
+            {
+                h2: "VSCode Linkerd: Install Results"
+            },
+            {
+                code: {
+                    content: installOutput
+                }
+            },
+        ];
 
-function buildInstallMarkup (installOutput: string): Array<any> {
-    const markup:Array<any> = [
-        {
-            h2: "VSCode Linkerd: Install Results"
-        },
-        {
-            code: {
-                content: installOutput
-            }
-        },
-    ];
-
-    return markup;
+        return markup;
+    }
 }
