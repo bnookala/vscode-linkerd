@@ -5,6 +5,7 @@ import * as k8s from 'vscode-kubernetes-tools-api';
 import { InstallController } from './linkerd/install';
 import { CheckController } from './linkerd/check';
 import { linkerdCheckUri, DocumentController, CheckStage } from './linkerd/provider';
+import { DashboardController } from './linkerd/dashboard';
 
 let kubectl: k8s.KubectlV1 | undefined = undefined;
 let clusterExplorer: k8s.ClusterExplorerV1 | undefined = undefined;
@@ -12,6 +13,7 @@ let clusterExplorer: k8s.ClusterExplorerV1 | undefined = undefined;
 let installController: InstallController | undefined = undefined;
 let checkController: CheckController | undefined = undefined;
 let documentController: DocumentController | undefined = undefined;
+let dashboardController: DashboardController | undefined = undefined;
 
 export async function activate (context: vscode.ExtensionContext) {
 	const clusterExplorerAPI = await k8s.extension.clusterExplorer.v1;
@@ -26,12 +28,14 @@ export async function activate (context: vscode.ExtensionContext) {
     kubectl = kubectlAPI.api;
 
     checkController = new CheckController();
-    installController = new InstallController(kubectl, checkController);
     documentController = new DocumentController(checkController);
+    installController = new InstallController(kubectl, checkController);
+    dashboardController = new DashboardController(kubectl, installController);
 
     const subscriptions = [
 		vscode.commands.registerCommand('vslinkerd.install', installLinkerd),
         vscode.commands.registerCommand('vslinkerd.check', checkLinkerd),
+        vscode.commands.registerCommand('vslinkerd.dashboard', openDashboard),
         vscode.workspace.registerTextDocumentContentProvider('linkerd', documentController)
     ];
 
@@ -91,6 +95,15 @@ async function checkLinkerd (commandTarget: any) {
         "markdown.showPreview",
         linkerdCheckUri(stage)
     );
+}
+
+async function openDashboard (commandTarget: any) {
+	const clusterName = clusterNode(commandTarget);
+	if (!clusterName || !installController || !dashboardController) {
+		return undefined;
+    }
+
+    await dashboardController.openDashboard();
 }
 
 function clusterNode (commandTarget: any): string | undefined {

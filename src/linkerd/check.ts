@@ -3,7 +3,7 @@ import { LinkerdCheckCLIOutput, exec } from './exec';
 
 const SUCCESS_SYMBOL = "√";
 const FAIL_SYMBOL = "×";
-const FailedCheckHintPrefix = "    "; // Yeah… I know :c - will move this to regex later.
+const FailedCheckHintPrefix = "    "; // TODO: use a regex insterad of attempting to figure out the number of spaces.
 
 
 export interface LinkerdCheck {
@@ -58,7 +58,7 @@ export class CheckController {
     }
 
     /**
-     * Hello, dear reader
+     * Hello, dear reader.
      * This isn't the best work, but it _does_ work… at least until the Linkerd CLI tool is updated and
      * breaks this. Until the CLI tool has the ability to output in a parseable format, this function
      * takes the output of `linkerd check` and outputs a structured object that can be used in this

@@ -29,6 +29,7 @@ export interface LinkerdExistence {
     message?: string;
 }
 
+// Not comprehensive. Options (and the default values) are pulled directly from `linkerd install -h`
 const defaultCustomConfig = `{
     "api-port": 8086,
     "control-port": 4190,
@@ -63,7 +64,7 @@ export class InstallController {
         this.checkController = checkController;
     }
 
-        /**
+    /**
      * Initiate the process to install Linkerd. We assume the caller has already made
      * the check to `isInstalled`.
      */
@@ -132,7 +133,7 @@ export class InstallController {
             };
         }
 
-        // Namespace does exist -- Linkerd should not be installed.
+        // Namespace does exist - Linkerd is installed.
         return {
             succeeded: true,
             result: true

@@ -21,11 +21,15 @@
 		"commands": [
 			{
 				"command": "vslinkerd.install",
-				"title": "Install Linkerd"
+				"title": "Linkerd Install"
 			},
 			{
 				"command": "vslinkerd.check",
-				"title": "Check Linkerd"
+				"title": "Linkerd Check"
+			},
+			{
+				"command": "vslinkerd.dashboard",
+				"title": "Linkerd Dashboard"
 			}
 		],
 		"menus": {
@@ -37,6 +41,11 @@
 				},
 				{
 					"command": "vslinkerd.check",
+					"when": "view == extension.vsKubernetesExplorer && viewItem =~ /^vsKubernetes\\.\\w*cluster$/i",
+					"group": "8"
+				},
+				{
+					"command": "vslinkerd.dashboard",
 					"when": "view == extension.vsKubernetesExplorer && viewItem =~ /^vsKubernetes\\.\\w*cluster$/i",
 					"group": "8"
 				}
