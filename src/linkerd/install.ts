@@ -242,7 +242,7 @@ export class InstallController {
         }
 
         const tempFile: FileResult = await file();
-        // Todo: make this asynchronous - add some kind of notifier
+        // TODO: make this file write asynchronous
         const bytesWritten = fs.writeSync(tempFile.fd, out.stdout.toString(), undefined);
 
         if (bytesWritten === 0) {
@@ -250,7 +250,7 @@ export class InstallController {
             return;
         }
 
-        // Operation could take some time - add some kind of progress bar/notifier.
+        // TODO: Operation could take some time - implement withProgress.
         const linkerdInstallCommand = `apply -f ${tempFile.path}`;
         const shellResult: k8s.KubectlV1.ShellResult | undefined = await this.kubectl.invokeCommand(linkerdInstallCommand);
 
