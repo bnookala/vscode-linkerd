@@ -17,6 +17,12 @@ enum LinkerdInstallOptions {
     Configure = "Configure"
 }
 
+enum LinkerdConfigureOptions {
+    Yes = "Yes",
+    No = "No",
+    Reset = "Reset"
+}
+
 export interface LinkerdExistence {
     succeeded: boolean;
     result: boolean;
@@ -80,7 +86,6 @@ export class InstallController {
         await this.beginInstall();
     }
 
-
     /**
      * Check if Linkerd is installed on the currently selected cluster.
      * @param kubectl
@@ -134,7 +139,7 @@ export class InstallController {
         };
     }
 
-    gatherCustomConfiguration = async (): Promise<string> => {
+    gatherCustomConfiguration = async () => {
         this.customConfigDocument = await vscode.workspace.openTextDocument({
             language: "json",
             content: defaultCustomConfig
@@ -143,8 +148,6 @@ export class InstallController {
         // Gather custom inputs. Linkerd can be installed with a number of arguments.
         vscode.window.showTextDocument(this.customConfigDocument);
         vscode.workspace.onDidCloseTextDocument(this.configureDocumentClosed);
-
-        return "";
     }
 
     configureDocumentClosed = async (e: vscode.TextDocument) => {
@@ -159,12 +162,40 @@ export class InstallController {
         const config = this.customConfigDocument.getText();
         const configJson = JSON.parse(config);
         const updated: {[index:string]: any} = updatedDiff(defaultConfigJson, configJson);
-
         const configurationOptions:string[] = [];
+
         Object.keys(updated).forEach(key => {
             const value = updated[key];
             configurationOptions.push(`--${key} ${value}`);
         });
+
+        const configurationOptionsString = configurationOptions.join(" ");
+
+        // Prompt the user, when they close, if they'd like to apply the
+        // selected configuration to the install.
+        const selection = await vscode.window.showInformationMessage(
+            `Install Linkerd with the following configuration: \n ${configurationOptionsString} ?`,
+            { modal: true },
+            LinkerdConfigureOptions.Reset,
+            LinkerdConfigureOptions.No,
+            LinkerdConfigureOptions.Yes
+        );
+
+        switch (selection) {
+            case LinkerdConfigureOptions.No:
+                return;
+            case LinkerdConfigureOptions.Yes:
+                break;
+            case LinkerdConfigureOptions.Reset:
+                this.customConfigDocument = undefined;
+                this.gatherCustomConfiguration();
+                return;
+            default:
+                return;
+        }
+
+        this.customConfigDocument = undefined;
+        await this.installWithConfiguration(`${configurationOptionsString}`);
     }
 
     beginInstall = async () => {
