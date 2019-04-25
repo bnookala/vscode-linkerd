@@ -3,7 +3,7 @@ import * as querystring from 'querystring';
 import * as fs from 'fs';
 import * as k8s from 'vscode-kubernetes-tools-api';
 import { updatedDiff } from 'deep-object-diff';
-import { file, FileResult } from 'tmp-promise';
+import { file, FileResult } from 'tmp';
 import { linkerdInstallUri } from './provider';
 import * as config from './config';
 import { exec } from './exec';
@@ -241,7 +241,12 @@ export class InstallController {
             return;
         }
 
-        const tempFile: FileResult = await file();
+        const tempFile: FileResult | void = await this.createTempFile();
+
+        if (!tempFile) {
+            return;
+        }
+
         // TODO: make this file write asynchronous
         const bytesWritten = fs.writeSync(tempFile.fd, out.stdout.toString(), undefined);
 
@@ -251,7 +256,7 @@ export class InstallController {
         }
 
         // TODO: Operation could take some time - implement withProgress.
-        const linkerdInstallCommand = `apply -f ${tempFile.path}`;
+        const linkerdInstallCommand = `apply -f ${tempFile.name}`;
         const shellResult: k8s.KubectlV1.ShellResult | undefined = await this.kubectl.invokeCommand(linkerdInstallCommand);
 
         if (!shellResult || shellResult.code !== 0) {
@@ -266,6 +271,19 @@ export class InstallController {
         );
 
         // Clean up our tempFile handle.
-        tempFile.cleanup();
+        // tempFile.cleanup();
+    }
+
+    createTempFile = async (): Promise<FileResult | void> => {
+        return new Promise((resolve, reject) => {
+            file((error, name, fd, remove) => {
+                if (error) {
+                    reject();
+                    return;
+                }
+
+                resolve({ name: name, fd: fd, removeCallback: remove });
+            });
+        });
     }
 }

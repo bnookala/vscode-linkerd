@@ -2,7 +2,12 @@
 	"name": "vscode-linkerd",
 	"displayName": "vscode-linkerd",
 	"description": "linkerd for fun and profit",
-	"version": "0.0.1",
+	"publisher": "bnookala",
+	"version": "0.1.0",
+	"repository": {
+        "type": "git",
+        "url": "https://github.com/bnookala/vscode-linkerd.git"
+    },
 	"engines": {
 		"vscode": "^1.32.0"
 	},
@@ -94,7 +99,7 @@
 		"deep-object-diff": "^1.1.0",
 		"json2md": "^1.6.3",
 		"shelljs": "^0.8.3",
-		"tmp-promise": "^1.0.5",
+		"tmp": "^0.1.0",
 		"vscode-kubernetes-tools-api": "^0.0.3"
 	}
 }
