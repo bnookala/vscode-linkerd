@@ -83,7 +83,7 @@
 		"@types/mocha": "^2.2.42",
 		"@types/node": "^10.14.4",
 		"@types/shelljs": "^0.8.5",
-		"tslint": "^5.15.0",
+		"tslint": "^5.16.0",
 		"typescript": "^3.4.3",
 		"vscode": "^1.1.28"
 	},
@@ -94,6 +94,6 @@
 		"json2md": "^1.6.3",
 		"shelljs": "^0.8.3",
 		"tmp-promise": "^1.0.5",
-		"vscode-kubernetes-tools-api": "0.0.2"
+		"vscode-kubernetes-tools-api": "^0.0.3"
 	}
 }

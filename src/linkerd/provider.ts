@@ -49,6 +49,7 @@ export class DocumentController implements vscode.TextDocumentContentProvider {
             return;
         }
 
+        // TODO: Implement withProgress here.
         const query = querystring.parse(uri.query);
         const checkOutput: LinkerdCheckCLIOutput = this.checkController.check(query.stage as string);
 

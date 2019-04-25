@@ -228,7 +228,6 @@ export class InstallController {
 
     installWithCustomConfiguration = async () => {
         await this.gatherCustomConfiguration();
-        // await installWithConfiguration(kubectl, configuration);
     }
 
     installWithDefaultConfiguration = async () => {
@@ -255,11 +254,7 @@ export class InstallController {
         const linkerdInstallCommand = `apply -f ${tempFile.path}`;
         const shellResult: k8s.KubectlV1.ShellResult | undefined = await this.kubectl.invokeCommand(linkerdInstallCommand);
 
-        if (!shellResult) {
-            return;
-        }
-
-        if (shellResult.code !== 0) {
+        if (!shellResult || shellResult.code !== 0) {
             vscode.window.showErrorMessage("Could not install Linkerd.");
             return;
         }

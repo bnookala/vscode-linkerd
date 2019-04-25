@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as k8s from 'vscode-kubernetes-tools-api';
+import { linkerdNamespace } from './config';
 import { InstallController} from './install';
 
 export class DashboardController {
@@ -10,6 +11,7 @@ export class DashboardController {
     constructor (kubectl: k8s.KubectlV1, installController: InstallController) {
         this.kubectl = kubectl;
         this.installController = installController;
+        this.session = undefined;
     }
 
     openDashboard = async () => {
@@ -24,9 +26,39 @@ export class DashboardController {
             return;
         }
 
-        // Does port-forward support port-forwarding to services?
-        // this.session = await this.kubectl.portForward('svc/linkerd-web', 'linkerd', 8084, 8084);
+        const dashboardContainer = await this.findWebContainer();
 
-        // vscode.openBrowserSomehow();
+        if (!dashboardContainer) {
+            return;
+        }
+
+        this.session = await this.kubectl.portForward(dashboardContainer, 'linkerd', 8084, 8084);
+        vscode.env.openExternal(vscode.Uri.parse("http://localhost:8084"));
+
+        return;
+    }
+
+    findWebContainer = async (): Promise<string | void> => {
+        if (!this.kubectl || !this.installController) {
+            return;
+        }
+
+        const shellResult = await this.kubectl.invokeCommand(`get po -l linkerd.io/control-plane-component=web -o json -n ${linkerdNamespace()}`);
+
+        if (!shellResult || shellResult.code !== 0) {
+            vscode.window.showErrorMessage("Could not fetch dashboard components.");
+            return;
+        }
+
+        const shellJson = JSON.parse(shellResult.stdout);
+
+        if (!shellJson.items || shellJson.items.length === 0) {
+            return;
+        }
+
+        const dashboardContainer = shellJson.items[0];
+        const dashboardContainerName = dashboardContainer.metadata.name;
+
+        return dashboardContainerName as string;
     }
 }
