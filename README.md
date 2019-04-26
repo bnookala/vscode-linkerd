@@ -14,10 +14,11 @@ This extension has a dependency on the Kubernetes Extension, and will require yo
 
 ## Extension Settings
 
-* `vscode-linkerd`: Parent namespace for any configuration settings for linkerd.
-     - `vscode-linkerd.linkerd-path`: Path to the linkerd binary installed on your system.
-     - `vscode-linkerd.namespace`: Namespace where linkerd may be found in your Kubernetes cluster.
-        - Note: If linkerd is not found in this namespace, it will be installed in this namespace.
+In your workplace or user settings (editable from `Preferences -> Open Settings (UI) from the command palette`, or `Preferences -> Settings` from the application bar), add the following fields:
+
+- `linkerd-path`: Path to the linkerd binary on your system. **Required!**
+- `linkerd-namespace`: Namespace where linkerd may be found in your Kubernetes cluster. Default: `linkerd`
+    - Note: If linkerd is not found in this namespace, it will be installed in this namespace.
 
 ## Issues
 

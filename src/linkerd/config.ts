@@ -1,11 +1,9 @@
 import * as vscode from 'vscode';
 
-const EXTENSION_CONFIG_KEY = 'vscode-linkerd';
-
 export function linkerdPath (): string | undefined {
-    return vscode.workspace.getConfiguration(EXTENSION_CONFIG_KEY)[`linkerd-path`];
+    return vscode.workspace.getConfiguration().get("linkerd-path");
 }
 
-export function linkerdNamespace (): string {
-    return vscode.workspace.getConfiguration(EXTENSION_CONFIG_KEY)[`linkerd-namespace`];
+export function linkerdNamespace (): string | undefined {
+    return vscode.workspace.getConfiguration().get("linkerd-namespace");
 }

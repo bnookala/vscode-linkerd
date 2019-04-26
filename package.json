@@ -3,11 +3,11 @@
 	"displayName": "vscode-linkerd",
 	"description": "linkerd for fun and profit",
 	"publisher": "bnookala",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"repository": {
-        "type": "git",
-        "url": "https://github.com/bnookala/vscode-linkerd.git"
-    },
+		"type": "git",
+		"url": "https://github.com/bnookala/vscode-linkerd.git"
+	},
 	"engines": {
 		"vscode": "^1.32.0"
 	},
@@ -60,20 +60,14 @@
 		"configuration": {
 			"title": "VSCode Linkerd",
 			"properties": {
-				"vscode-linkerd": {
-					"type": "object",
-					"description": "VSCode Linkerd Configuration",
-					"properties": {
-						"linkerd-path": {
-							"type": "string",
-							"description": "File path to a Linkerd binary"
-						},
-						"linkerd-namespace": {
-							"type": "string",
-							"description": "Namespace for Linkerd",
-							"default": "linkerd"
-						}
-					}
+				"linkerd-path": {
+					"type": "string",
+					"description": "File path to a Linkerd binary"
+				},
+				"linkerd-namespace": {
+					"type": "string",
+					"description": "Namespace for Linkerd",
+					"default": "linkerd"
 				}
 			}
 		}
