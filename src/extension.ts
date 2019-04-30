@@ -6,6 +6,7 @@ import { InstallController } from './linkerd/install';
 import { CheckController } from './linkerd/check';
 import { linkerdCheckUri, DocumentController, CheckStage } from './linkerd/provider';
 import { DashboardController } from './linkerd/dashboard';
+import { MeshedResourceExplorer } from './linkerd/explorer';
 
 let kubectl: k8s.KubectlV1 | undefined = undefined;
 let clusterExplorer: k8s.ClusterExplorerV1 | undefined = undefined;
@@ -14,6 +15,9 @@ let installController: InstallController | undefined = undefined;
 let checkController: CheckController | undefined = undefined;
 let documentController: DocumentController | undefined = undefined;
 let dashboardController: DashboardController | undefined = undefined;
+let meshExplorer: MeshedResourceExplorer | undefined = undefined;
+
+// TODO: Allow extension to activate on other types of events.
 
 export async function activate (context: vscode.ExtensionContext) {
 	const clusterExplorerAPI = await k8s.extension.clusterExplorer.v1;
@@ -31,6 +35,10 @@ export async function activate (context: vscode.ExtensionContext) {
     documentController = new DocumentController(checkController);
     installController = new InstallController(kubectl, checkController);
     dashboardController = new DashboardController(kubectl, installController);
+    meshExplorer = new MeshedResourceExplorer(kubectl, installController);
+
+    clusterExplorer.registerNodeContributor(meshExplorer);
+
 
     const subscriptions = [
 		vscode.commands.registerCommand('vslinkerd.install', installLinkerd),

@@ -102,6 +102,7 @@ export class InstallController {
             };
         }
 
+        // TODO: Cache the results here.
         const ns = config.linkerdNamespace();
         const nsOut = await this.kubectl.invokeCommand(`get ns ${ns} -o json`);
 
