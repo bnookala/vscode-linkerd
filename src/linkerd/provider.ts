@@ -31,7 +31,7 @@ export class DocumentController implements vscode.TextDocumentContentProvider {
         this.checkController = checkController;
     }
 
-    provideTextDocumentContent = (uri: vscode.Uri, _token: vscode.CancellationToken):vscode.ProviderResult<string> => {
+    provideTextDocumentContent = (uri: vscode.Uri, _token: vscode.CancellationToken): vscode.ProviderResult<string> => {
         if(uri.authority === LinkerdFunction.CHECK) {
             return this.linkerdCheckDocument(uri);
         } else if (uri.authority === LinkerdFunction.INSTALL) {

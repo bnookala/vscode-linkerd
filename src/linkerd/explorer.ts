@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as k8s from 'vscode-kubernetes-tools-api';
+import * as path from 'path';
 import { InstallController } from './install';
 import { exec } from './exec';
 
@@ -10,7 +11,6 @@ export interface NamespaceToResource {
 
 export class MeshedResourceExplorer implements k8s.ClusterExplorerV1.NodeContributor {
     constructor (
-        private readonly kubectl: k8s.KubectlV1,
         private readonly installController: InstallController
     ) {}
 
@@ -105,6 +105,7 @@ class MeshedResourcePod implements k8s.ClusterExplorerV1.Node {
         );
 
         treeItem.contextValue = 'linkerd.meshedPod';
+        treeItem.iconPath = vscode.Uri.file(path.join(__dirname, "./linkerd.svg"));
         return treeItem;
     }
 

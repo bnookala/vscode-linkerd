@@ -35,7 +35,7 @@ export async function activate (context: vscode.ExtensionContext) {
     documentController = new DocumentController(checkController);
     installController = new InstallController(kubectl, checkController);
     dashboardController = new DashboardController(kubectl, installController);
-    meshExplorer = new MeshedResourceExplorer(kubectl, installController);
+    meshExplorer = new MeshedResourceExplorer(installController);
 
     clusterExplorer.registerNodeContributor(meshExplorer);
 
@@ -69,15 +69,16 @@ async function installLinkerd (commandTarget: any) {
     // Missing kubectl, invocation failed.
     if (!installed.succeeded && !installed.result && installed.message) {
         vscode.window.showErrorMessage(installed.message);
-        return;
+        return undefined;
     }
 
     if (installed.succeeded && installed.result === false) {
         await installController.install();
-        return;
+        return undefined;
     }
 
     vscode.window.showInformationMessage("Linkerd is already installed.");
+    return undefined;
 }
 
 async function checkLinkerd (commandTarget: any) {
@@ -92,7 +93,7 @@ async function checkLinkerd (commandTarget: any) {
     // Missing kubectl, invocation failed.
     if (!installed.succeeded && !installed.result && installed.message) {
         vscode.window.showErrorMessage(installed.message);
-        return;
+        return undefined;
     }
 
     if (installed.succeeded && installed.result) {
@@ -103,6 +104,8 @@ async function checkLinkerd (commandTarget: any) {
         "markdown.showPreview",
         linkerdCheckUri(stage)
     );
+
+    return undefined;
 }
 
 async function openDashboard (commandTarget: any) {
@@ -112,6 +115,7 @@ async function openDashboard (commandTarget: any) {
     }
 
     await dashboardController.openDashboard();
+    return undefined;
 }
 
 function clusterNode (commandTarget: any): string | undefined {
