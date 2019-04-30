@@ -15,6 +15,7 @@
 		"Other"
 	],
 	"activationEvents": [
+		"onView:extension.vsKubernetesExplorer",
 		"onCommand:vslinkerd.install",
 		"onCommand:vslinkerd.check",
 		"onCommand:vslinkerd.dashboard"
