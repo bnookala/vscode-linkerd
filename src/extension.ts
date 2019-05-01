@@ -2,6 +2,7 @@
 
 import * as vscode from 'vscode';
 import * as k8s from 'vscode-kubernetes-tools-api';
+import * as config from './linkerd/config';
 import { InstallController } from './linkerd/install';
 import { CheckController } from './linkerd/check';
 import { linkerdCheckUri, DocumentController, CheckStage } from './linkerd/provider';
@@ -17,7 +18,10 @@ let documentController: DocumentController | undefined = undefined;
 let dashboardController: DashboardController | undefined = undefined;
 let meshExplorer: MeshedResourceExplorer | undefined = undefined;
 
-// TODO: Allow extension to activate on other types of events.
+enum Selection {
+    OPEN_SETTINGS = "Open Settings",
+    CANCEL = "Cancel"
+}
 
 export async function activate (context: vscode.ExtensionContext) {
 	const clusterExplorerAPI = await k8s.extension.clusterExplorer.v1;
@@ -30,6 +34,8 @@ export async function activate (context: vscode.ExtensionContext) {
 
     clusterExplorer = clusterExplorerAPI.api;
     kubectl = kubectlAPI.api;
+
+    await checkSettings();
 
     checkController = new CheckController();
     documentController = new DocumentController(checkController);
@@ -48,6 +54,30 @@ export async function activate (context: vscode.ExtensionContext) {
     ];
 
     context.subscriptions.push(...subscriptions);
+}
+
+async function checkSettings() {
+    const binaryPath = config.linkerdPath();
+
+    if (binaryPath) {
+        return;
+    }
+
+    const selection = await vscode.window.showErrorMessage(
+        "Linkerd binary not found on file system. Open the extension settings to set?", Selection.OPEN_SETTINGS,
+        Selection.CANCEL
+    );
+
+    switch (selection) {
+        case Selection.OPEN_SETTINGS:
+            vscode.commands.executeCommand("workbench.action.openGlobalSettings");
+            break;
+        case Selection.CANCEL:
+        default:
+            break;
+    }
+
+    return;
 }
 
 /**
