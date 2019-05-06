@@ -50,7 +50,9 @@ export async function activate (context: vscode.ExtensionContext) {
 		vscode.commands.registerCommand('vslinkerd.install', installLinkerd),
         vscode.commands.registerCommand('vslinkerd.check', checkLinkerd),
         vscode.commands.registerCommand('vslinkerd.dashboard', openDashboard),
-        vscode.workspace.registerTextDocumentContentProvider('linkerd', documentController)
+        vscode.commands.registerCommand('vslinkerd.openDashboardToPod', openDashboardToPod),
+        vscode.commands.registerCommand('vslinkerd.openDashboardToNamespace', openDashboardToNamespace),
+        vscode.workspace.registerTextDocumentContentProvider('linkerd', documentController),
     ];
 
     context.subscriptions.push(...subscriptions);
@@ -70,7 +72,7 @@ async function checkSettings() {
 
     switch (selection) {
         case Selection.OPEN_SETTINGS:
-            vscode.commands.executeCommand("workbench.action.openGlobalSettings");
+            vscode.commands.executeCommand("workbench.action.openGlobalSettings", true, { query: "vslinkerd.linkerd-path" });
             break;
         case Selection.CANCEL:
         default:
@@ -146,6 +148,37 @@ async function openDashboard (commandTarget: any) {
 
     await dashboardController.openDashboard();
     return undefined;
+}
+
+async function openDashboardToPod (commandTarget: any) {
+    if (!commandTarget || !dashboardController) {
+        return;
+    }
+
+    const namespace = commandTarget.impl.meshedNamespace;
+    const pod = commandTarget.impl.meshedPodName;
+
+    if (!namespace || !pod) {
+        return;
+    }
+
+    dashboardController.openDashboard(namespace, pod);
+    return;
+}
+
+async function openDashboardToNamespace (commandTarget: any) {
+    if (!commandTarget || !dashboardController) {
+        return;
+    }
+
+    const namespace = commandTarget.impl.meshedNamespace;
+
+    if (!namespace) {
+        return;
+    }
+
+    dashboardController.openDashboard(namespace);
+    return;
 }
 
 function clusterNode (commandTarget: any): string | undefined {

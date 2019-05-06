@@ -38,6 +38,7 @@ export class MeshedResourceExplorer implements k8s.ClusterExplorerV1.NodeContrib
 
 class MeshedResourceFolderNode implements k8s.ClusterExplorerV1.Node {
     async getChildren (): Promise<k8s.ClusterExplorerV1.Node[]> {
+        // TODO: Why does linkerd pick up istio meshed pods?
         const meshedResources = await exec("get pods --all-namespaces");
 
         if (!meshedResources || meshedResources.code !== 0) {

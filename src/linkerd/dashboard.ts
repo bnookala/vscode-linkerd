@@ -14,7 +14,7 @@ export class DashboardController {
         this.session = undefined;
     }
 
-    openDashboard = async () => {
+    openDashboard = async (namespace?: string, pod?: string) => {
         if (!this.kubectl || !this.installController) {
             return;
         }
@@ -32,9 +32,29 @@ export class DashboardController {
             return;
         }
 
-        this.session = await this.kubectl.portForward(dashboardContainer, 'linkerd', 8084, 8084);
-        vscode.env.openExternal(vscode.Uri.parse("http://localhost:8084"));
+        if (!this.session) {
+            this.session = await this.kubectl.portForward(dashboardContainer, 'linkerd', 8084, 8084);
+        }
 
+        if (namespace || pod) {
+            if (namespace && !pod) {
+                vscode.env.openExternal(
+                    vscode.Uri.parse(`http://localhost:8084/namespaces/${namespace}`)
+                );
+
+                return;
+            }
+
+            if (namespace && pod) {
+                vscode.env.openExternal(
+                    vscode.Uri.parse(`http://localhost:8084/namespaces/${namespace}/pods/${pod}`)
+                );
+
+                return;
+            }
+        }
+
+        vscode.env.openExternal(vscode.Uri.parse("http://localhost:8084"));
         return;
     }
 

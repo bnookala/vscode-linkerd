@@ -28,15 +28,23 @@
 		"commands": [
 			{
 				"command": "vslinkerd.install",
-				"title": "Linkerd Install"
+				"title": "Linkerd: Install"
 			},
 			{
 				"command": "vslinkerd.check",
-				"title": "Linkerd Check"
+				"title": "Linkerd: Check"
 			},
 			{
 				"command": "vslinkerd.dashboard",
-				"title": "Linkerd Dashboard"
+				"title": "Linkerd: Open Dashboard"
+			},
+			{
+				"command": "vslinkerd.openDashboardToNamespace",
+				"title": "Linkerd: Open Dashboard to Namespace"
+			},
+			{
+				"command": "vslinkerd.openDashboardToPod",
+				"title": "Linkerd: Open Dashboard to Pod"
 			}
 		],
 		"menus": {
@@ -54,6 +62,16 @@
 				{
 					"command": "vslinkerd.dashboard",
 					"when": "view == extension.vsKubernetesExplorer && viewItem =~ /^vsKubernetes\\.\\w*cluster$/i",
+					"group": "8"
+				},
+				{
+					"command": "vslinkerd.openDashboardToPod",
+					"when": "view == extension.vsKubernetesExplorer && viewItem == linkerd.meshedPod",
+					"group": "8"
+				},
+				{
+					"command": "vslinkerd.openDashboardToNamespace",
+					"when": "view == extension.vsKubernetesExplorer && viewItem == linkerd.meshedNamespace",
 					"group": "8"
 				}
 			]
