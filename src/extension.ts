@@ -151,7 +151,14 @@ async function openDashboard (commandTarget: any) {
 }
 
 async function openDashboardToPod (commandTarget: any) {
-    if (!commandTarget || !dashboardController) {
+    if (!commandTarget) {
+        vscode.window.showErrorMessage(
+            "Right click a Linkerd Pod Resource from the k8s explorer to use the dashboard."
+        );
+        return;
+    }
+
+    if (!dashboardController) {
         return;
     }
 
@@ -167,7 +174,14 @@ async function openDashboardToPod (commandTarget: any) {
 }
 
 async function openDashboardToNamespace (commandTarget: any) {
-    if (!commandTarget || !dashboardController) {
+    if (!commandTarget) {
+        vscode.window.showErrorMessage(
+            "Right click a Linkerd Namespace Resource from the k8s explorer to use the dashboard."
+        );
+        return;
+    }
+
+    if (!dashboardController) {
         return;
     }
 
