@@ -81,4 +81,12 @@ export class DashboardController {
 
         return dashboardContainerName as string;
     }
+
+    disposeDashboardSession () {
+        if (!this.session) {
+            return;
+        }
+
+        this.session.dispose();
+    }
 }

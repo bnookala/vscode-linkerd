@@ -3,7 +3,7 @@
 	"displayName": "vscode-linkerd",
 	"description": "linkerd for fun and profit",
 	"publisher": "bnookala",
-	"version": "0.1.2",
+	"version": "0.1.3",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/bnookala/vscode-linkerd.git"
@@ -113,6 +113,6 @@
 		"json2md": "^1.6.3",
 		"shelljs": "^0.8.3",
 		"tmp": "^0.1.0",
-		"vscode-kubernetes-tools-api": "^0.0.6"
+		"vscode-kubernetes-tools-api": "^1.0.0"
 	}
 }

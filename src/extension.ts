@@ -216,5 +216,10 @@ function clusterNode (commandTarget: any): string | undefined {
      return undefined;
 }
 
-// this method is called when your extension is deactivated
-export function deactivate () {}
+export function deactivate () {
+    if (!dashboardController) {
+        return;
+    }
+
+    dashboardController.disposeDashboardSession();
+}
