@@ -33,7 +33,20 @@ export class DashboardController {
         }
 
         if (!this.session) {
-            this.session = await this.kubectl.portForward(dashboardContainer, 'linkerd', 8084, 8084);
+            const session = await this.kubectl.portForward(dashboardContainer, 'linkerd', 8084, 8084, {
+                showInUI: {
+                    location: "status-bar",
+                    description: "Linkerd Dashboard",
+                    onCancel: this.disposeDashboardSession
+                }
+            });
+
+            if (!session) {
+                vscode.window.showErrorMessage("Could not open Linkerd Dashboard");
+                return;
+            }
+
+            this.session = session;
         }
 
         if (namespace || pod) {
