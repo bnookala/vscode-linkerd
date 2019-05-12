@@ -3,6 +3,11 @@ import * as k8s from 'vscode-kubernetes-tools-api';
 import { linkerdNamespace } from './config';
 import { InstallController} from './install';
 
+export enum DashboardType {
+    LINKERD = "linkerd",
+    GRAFANA = "grafana"
+}
+
 export class DashboardController {
     private kubectl: k8s.KubectlV1 | undefined;
     private installController: InstallController | undefined;
@@ -14,7 +19,11 @@ export class DashboardController {
         this.session = undefined;
     }
 
-    openDashboard = async (namespace?: string, pod?: string) => {
+    openDashboard = async (
+        dashboardType: DashboardType,
+        namespace?: string,
+        pod?: string
+    ) => {
         if (!this.kubectl || !this.installController) {
             return;
         }
@@ -49,26 +58,39 @@ export class DashboardController {
             this.session = session;
         }
 
-        if (namespace || pod) {
-            if (namespace && !pod) {
-                vscode.env.openExternal(
-                    vscode.Uri.parse(`http://localhost:8084/namespaces/${namespace}`)
-                );
+        if (dashboardType === DashboardType.LINKERD) {
+            if (namespace || pod) {
+                if (namespace && !pod) {
+                    vscode.env.openExternal(
+                        vscode.Uri.parse(`http://localhost:8084/namespaces/${namespace}`)
+                    );
 
-                return;
+                    return;
+                }
+
+                if (namespace && pod) {
+                    vscode.env.openExternal(
+                        vscode.Uri.parse(`http://localhost:8084/namespaces/${namespace}/pods/${pod}`)
+                    );
+
+                    return;
+                }
             }
 
+            vscode.env.openExternal(vscode.Uri.parse("http://localhost:8084"));
+            return;
+        } else {
+            // TODO: How do we get to the deployment dashboard?
             if (namespace && pod) {
                 vscode.env.openExternal(
-                    vscode.Uri.parse(`http://localhost:8084/namespaces/${namespace}/pods/${pod}`)
+                    vscode.Uri.parse(`http://localhost:8084/grafana/d/linkerd-pod/linkerd-pod?var-namespace=${namespace}&var-pod=${pod}`)
                 );
-
-                return;
+            } else {
+                vscode.env.openExternal(
+                    vscode.Uri.parse(`http://localhost:8084/grafana/?refresh=5s&orgId=1`)
+                );
             }
         }
-
-        vscode.env.openExternal(vscode.Uri.parse("http://localhost:8084"));
-        return;
     }
 
     findWebContainer = async (): Promise<string | void> => {

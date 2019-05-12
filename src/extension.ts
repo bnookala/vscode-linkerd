@@ -6,7 +6,7 @@ import * as config from './linkerd/config';
 import { InstallController } from './linkerd/install';
 import { CheckController } from './linkerd/check';
 import { linkerdCheckUri, DocumentController, CheckStage } from './linkerd/provider';
-import { DashboardController } from './linkerd/dashboard';
+import { DashboardController, DashboardType } from './linkerd/dashboard';
 import { MeshedResourceExplorer } from './linkerd/explorer';
 
 let kubectl: k8s.KubectlV1 | undefined = undefined;
@@ -49,9 +49,11 @@ export async function activate (context: vscode.ExtensionContext) {
     const subscriptions = [
 		vscode.commands.registerCommand('vslinkerd.install', installLinkerd),
         vscode.commands.registerCommand('vslinkerd.check', checkLinkerd),
-        vscode.commands.registerCommand('vslinkerd.dashboard', openDashboard),
-        vscode.commands.registerCommand('vslinkerd.openDashboardToPod', openDashboardToPod),
-        vscode.commands.registerCommand('vslinkerd.openDashboardToNamespace', openDashboardToNamespace),
+        vscode.commands.registerCommand('vslinkerd.openLinkerdDashboard', openLinkerdDashboard),
+        vscode.commands.registerCommand('vslinkerd.openLinkerdDashboardToPod', openLinkerdDashboardToPod),
+        vscode.commands.registerCommand('vslinkerd.openLinkerdDashboardToNamespace', openLinkerdDashboardToNamespace),
+        vscode.commands.registerCommand('vslinkerd.openGrafana', openGrafana),
+        vscode.commands.registerCommand('vslinkerd.openGrafanaToPod', openGrafanaToPod),
         vscode.workspace.registerTextDocumentContentProvider('linkerd', documentController),
     ];
 
@@ -140,20 +142,26 @@ async function checkLinkerd (commandTarget: any) {
     return undefined;
 }
 
-async function openDashboard (commandTarget: any) {
-	const clusterName = clusterNode(commandTarget);
-	if (!clusterName || !installController || !dashboardController) {
+async function openLinkerdDashboard (commandTarget: any) {
+    if (!commandTarget) {
+        vscode.window.showErrorMessage(
+            "Right click a Linkerd Service Mesh from the k8s explorer to use the Linkerd dashboard."
+        );
+        return;
+    }
+
+	if (!installController || !dashboardController) {
 		return undefined;
     }
 
-    await dashboardController.openDashboard();
+    await dashboardController.openDashboard(DashboardType.LINKERD);
     return undefined;
 }
 
-async function openDashboardToPod (commandTarget: any) {
+async function openLinkerdDashboardToPod (commandTarget: any) {
     if (!commandTarget) {
         vscode.window.showErrorMessage(
-            "Right click a Linkerd Pod Resource from the k8s explorer to use the dashboard."
+            "Right click a Linkerd Pod Resource from the k8s explorer to use the Linkerd dashboard."
         );
         return;
     }
@@ -169,14 +177,14 @@ async function openDashboardToPod (commandTarget: any) {
         return;
     }
 
-    dashboardController.openDashboard(namespace, pod);
+    await dashboardController.openDashboard(DashboardType.LINKERD, namespace, pod);
     return;
 }
 
-async function openDashboardToNamespace (commandTarget: any) {
+async function openLinkerdDashboardToNamespace (commandTarget: any) {
     if (!commandTarget) {
         vscode.window.showErrorMessage(
-            "Right click a Linkerd Namespace Resource from the k8s explorer to use the dashboard."
+            "Right click a Linkerd Namespace Resource from the k8s explorer to use the Linkerd dashboard."
         );
         return;
     }
@@ -191,7 +199,45 @@ async function openDashboardToNamespace (commandTarget: any) {
         return;
     }
 
-    dashboardController.openDashboard(namespace);
+    await dashboardController.openDashboard(DashboardType.LINKERD, namespace);
+    return;
+}
+
+async function openGrafana (commandTarget: any) {
+    if (!commandTarget) {
+        vscode.window.showErrorMessage(
+            "Right click a Linkerd Service Mesh in the k8s explorer to use grafana."
+        );
+    }
+
+	if (!installController || !dashboardController) {
+		return undefined;
+    }
+
+    await dashboardController.openDashboard(DashboardType.LINKERD);
+    return undefined;
+}
+
+async function openGrafanaToPod (commandTarget: any) {
+    if (!commandTarget) {
+        vscode.window.showErrorMessage(
+            "Right click a Linkerd Pod Resource from the k8s explorer to use grafana."
+        );
+        return;
+    }
+
+    if (!dashboardController) {
+        return;
+    }
+
+    const namespace = commandTarget.impl.meshedNamespace;
+    const pod = commandTarget.impl.meshedPodName;
+
+    if (!namespace || !pod) {
+        return;
+    }
+
+    await dashboardController.openDashboard(DashboardType.GRAFANA, namespace, pod);
     return;
 }
 

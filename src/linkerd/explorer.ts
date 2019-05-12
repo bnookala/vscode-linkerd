@@ -73,7 +73,7 @@ class MeshedResourceFolderNode implements k8s.ClusterExplorerV1.Node {
 
     getTreeItem (): vscode.TreeItem {
         const treeItem = new vscode.TreeItem('Linkerd Mesh', vscode.TreeItemCollapsibleState.Collapsed);
-        treeItem.contextValue = 'linkerd.folder';
+        treeItem.contextValue = 'linkerd.mesh';
         return treeItem;
     }
 }

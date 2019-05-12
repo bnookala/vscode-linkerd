@@ -4,8 +4,6 @@
 
 This is the Visual Studio Code Linkerd extension, built to work with the [VSCode Kubernetes Extension](https://github.com/Azure/vscode-kubernetes-tools).
 
-This extension has a dependency on the VSCode Kubernetes Tools Extension Preview, and requires you to download and install [v0.1.19+Preview4](https://github.com/Azure/vscode-kubernetes-tools/releases/tag/0.1.19%2Bpreview4).
-
 ## Features
 
 #### Cluster Explorer commands
@@ -25,7 +23,7 @@ The following commands are triggered when right clicking a meshed resource under
 
 ## Dependencies
 
-- [VSCode Kubernetes Tools v0.1.19+Preview4 or higher](https://github.com/Azure/vscode-kubernetes-tools/releases/tag/0.1.19%2Bpreview4) and [it's dependencies](https://github.com/Azure/vscode-kubernetes-tools#dependencies), installed and [configured](https://github.com/Azure/vscode-kubernetes-tools#extension-settings).
+- [VSCode Kubernetes Tools v1.0.0 or higher](https://github.com/Azure/vscode-kubernetes-tools/releases/tag/1.0.0) and [it's dependencies](https://github.com/Azure/vscode-kubernetes-tools#dependencies), installed and [configured](https://github.com/Azure/vscode-kubernetes-tools#extension-settings).
 - The Linkerd binary [installed on your system](https://linkerd.io/2/getting-started/#step-1-install-the-cli)
 
 ## Extension Settings
