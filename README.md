@@ -11,7 +11,7 @@ This is the Visual Studio Code Linkerd extension, built to work with the [VSCode
 The following commands are triggered when right clicking a cluster under the Kubernetes Cluster Explorer.
 
 * `Linkerd Check`:  Check Linkerd status, and diagnosing issues with the installation
-* `Linkerd Install`:  Install Linkerd, and configure custom parameters to your cluster.
+* `Linkerd Install`:  Install Linkerd, and configure custom parameters to your cluster
 * `Linkerd Dashboard`: Open and interact with the Linkerd dashboard
 
 #### Linkerd Mesh Explorer commands
@@ -19,7 +19,10 @@ The following commands are triggered when right clicking a cluster under the Kub
 The following commands are triggered when right clicking a meshed resource under the Linkerd Mesh Explorer.
 
 * `Linkerd: Open Dashboard to Pod`:  Open and interact with a meshed pod with the Linkerd dashboard
-* `Linkerd: Open Dashboard to Namespace`:  Open and interact with a meshed namespace with the Linkerd dashboard
+* `Linkerd: Open Dashboard to Namespace`:  Open and interact with a meshed namespace with the Linkerd
+dashboard
+* `Linkerd: Open Grafana Dashboard`: Open and interact with the Grafana dashboard
+* `Linkerd: Open Grafana Dashboard to Pod`: Open and interact with the Grafana Dashboard for a Pod
 
 ## Dependencies
 
