@@ -106,7 +106,7 @@ class MeshedResourcePod implements k8s.ClusterExplorerV1.Node {
         );
 
         treeItem.contextValue = 'linkerd.meshedPod';
-        treeItem.iconPath = vscode.Uri.file(path.join(__dirname, "./linkerd.svg"));
+        treeItem.iconPath = vscode.Uri.file(path.join(__dirname, "../../assets/linkerd.svg"));
         return treeItem;
     }
 

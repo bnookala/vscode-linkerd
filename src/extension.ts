@@ -49,9 +49,9 @@ export async function activate (context: vscode.ExtensionContext) {
     const subscriptions = [
 		vscode.commands.registerCommand('vslinkerd.install', installLinkerd),
         vscode.commands.registerCommand('vslinkerd.check', checkLinkerd),
-        vscode.commands.registerCommand('vslinkerd.openLinkerdDashboard', openLinkerdDashboard),
-        vscode.commands.registerCommand('vslinkerd.openLinkerdDashboardToPod', openLinkerdDashboardToPod),
-        vscode.commands.registerCommand('vslinkerd.openLinkerdDashboardToNamespace', openLinkerdDashboardToNamespace),
+        vscode.commands.registerCommand('vslinkerd.dashboard', openLinkerdDashboard),
+        vscode.commands.registerCommand('vslinkerd.openDashboardToPod', openLinkerdDashboardToPod),
+        vscode.commands.registerCommand('vslinkerd.openDashboardToNamespace', openLinkerdDashboardToNamespace),
         vscode.commands.registerCommand('vslinkerd.openGrafana', openGrafana),
         vscode.commands.registerCommand('vslinkerd.openGrafanaToPod', openGrafanaToPod),
         vscode.workspace.registerTextDocumentContentProvider('linkerd', documentController),

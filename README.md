@@ -2,7 +2,9 @@
 
 ## Introduction
 
-This is the Visual Studio Code Linkerd extension, built to work with the [VSCode Kubernetes Extension](https://github.com/Azure/vscode-kubernetes-tools).
+This is the Visual Studio Code Linkerd extension, built to work with the [VSCode Kubernetes Extension](https://github.com/Azure/vscode-kubernetes-tools), and the [Linkerd2 Service Mesh](https://linkerd.io/2/getting-started/).
+
+If you are not familiar with what a Service Mesh, [this guide](https://buoyant.io/2017/04/25/whats-a-service-mesh-and-why-do-i-need-one/) is a great place to start!
 
 ## Features
 
@@ -21,8 +23,13 @@ The following commands are triggered when right clicking a meshed resource under
 * `Linkerd: Open Dashboard to Pod`:  Open and interact with a meshed pod with the Linkerd dashboard
 * `Linkerd: Open Dashboard to Namespace`:  Open and interact with a meshed namespace with the Linkerd
 dashboard
+
+![Linkerd Dashboard](./linkerd_dashboard.gif)
+
 * `Linkerd: Open Grafana Dashboard`: Open and interact with the Grafana dashboard
 * `Linkerd: Open Grafana Dashboard to Pod`: Open and interact with the Grafana Dashboard for a Pod
+
+![Grafana Dashboard](./grafana_dashboard.gif)
 
 ## Dependencies
 
