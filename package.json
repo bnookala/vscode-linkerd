@@ -144,7 +144,7 @@
 		"@types/tmp": "^0.1.0",
 		"deep-object-diff": "^1.1.0",
 		"json2md": "^1.6.3",
-		"shelljs": "^0.8.3",
+		"shelljs": "^0.8.5",
 		"tmp": "^0.1.0",
 		"vscode-kubernetes-tools-api": "^1.0.0"
 	}
